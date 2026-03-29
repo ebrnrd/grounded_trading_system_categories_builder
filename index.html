@@ -12,7 +12,6 @@
     --bg2:       #121510;
     --bg3:       #181c14;
     --bg4:       #1e241a;
-    --panel:     #141812;
     --border:    #2a3424;
     --border2:   #3a4832;
     --accent:    #6daa3f;
@@ -24,33 +23,23 @@
     --danger:    #c04040;
     --warn:      #c08830;
     --info:      #4a8aaa;
+    --info-dim:  #1a3a4a;
     --mono:      'Share Tech Mono', monospace;
     --sans:      'Rajdhani', sans-serif;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing:border-box; margin:0; padding:0; }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 15px;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    background:var(--bg); color:var(--text); font-family:var(--sans);
+    font-size:15px; height:100vh; display:flex; flex-direction:column; overflow:hidden;
   }
 
   /* ── HEADER ── */
   header {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 9px 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-shrink: 0;
-    position: relative;
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:9px 16px; display:flex; align-items:center; gap:14px;
+    flex-shrink:0; position:relative;
   }
   header::after {
     content:''; position:absolute; bottom:0;left:0;right:0;height:1px;
@@ -63,15 +52,13 @@
 
   /* ── LAYOUT ── */
   .app {
-    flex: 1;
-    display: grid;
-    grid-template-columns: var(--left-w,320px) 5px 1fr var(--right-w,300px);
-    overflow: hidden;
+    flex:1; display:grid;
+    grid-template-columns:var(--left-w,320px) 5px 1fr var(--right-w,300px);
+    overflow:hidden;
   }
   .resize-handle {
     width:5px; background:transparent; cursor:col-resize;
-    flex-shrink:0; position:relative; z-index:10;
-    border-right:1px solid var(--border); transition:background .15s;
+    flex-shrink:0; border-right:1px solid var(--border); transition:background .15s;
   }
   .resize-handle:hover,.resize-handle.dragging { background:var(--accent-dim); border-right-color:var(--accent); }
 
@@ -87,6 +74,18 @@
   .panel-body::-webkit-scrollbar { width:4px; }
   .panel-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
 
+  /* ── TABS ── */
+  .tab-bar { display:flex; flex-shrink:0; border-bottom:1px solid var(--border); background:var(--bg3); }
+  .tab-btn {
+    flex:1; padding:7px 10px; font-family:var(--mono); font-size:10px; letter-spacing:1.5px;
+    text-transform:uppercase; text-align:center; cursor:pointer; color:var(--text3);
+    border:none; border-bottom:2px solid transparent; transition:all .15s; user-select:none; background:transparent;
+  }
+  .tab-btn:hover { color:var(--text2); background:var(--bg4); }
+  .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); background:var(--bg2); }
+  .tab-pane { display:none; flex-direction:column; flex:1; overflow:hidden; min-height:0; }
+  .tab-pane.active { display:flex; }
+
   /* ── BUTTONS ── */
   .btn {
     font-family:var(--sans); font-weight:600; font-size:13px; letter-spacing:.5px;
@@ -96,7 +95,7 @@
   .btn:hover { background:var(--accent-dim); border-color:var(--accent); color:#fff; }
   .btn.primary { background:var(--accent-dim); border-color:var(--accent); color:#fff; }
   .btn.primary:hover { background:var(--accent2); }
-  .btn.danger { border-color:var(--danger); color:var(--danger); }
+  .btn.danger { border-color:var(--danger); color:var(--danger); background:transparent; }
   .btn.danger:hover { background:#3a1010; }
   .btn.small { font-size:11px; padding:3px 8px; }
   .btn.xs { font-size:10px; padding:2px 6px; }
@@ -109,79 +108,84 @@
   input[type=text]:focus,select:focus,textarea:focus { border-color:var(--accent); }
   select option { background:var(--bg3); }
 
-  /* ── LEFT PANEL — FILE LOADER ── */
+  /* ── FILES TAB ── */
+  .file-tab-body { flex:1; overflow-y:auto; padding:8px; min-height:0; }
+  .file-tab-body::-webkit-scrollbar { width:4px; }
+  .file-tab-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
   .file-zone {
-    border: 1px dashed var(--border2); border-radius:4px; margin:10px;
-    padding:14px; text-align:center; cursor:pointer; transition:all .15s;
+    border:1px dashed var(--border2); border-radius:4px; margin-bottom:6px;
+    padding:11px; text-align:center; cursor:pointer; transition:all .15s;
     font-size:12px; color:var(--text3);
   }
   .file-zone:hover { border-color:var(--accent); color:var(--text2); background:var(--bg3); }
   .file-zone input { display:none; }
 
-  .loaded-files { padding:0 10px 8px; }
+  .file-group { margin-bottom:10px; }
+  .file-group-header {
+    display:flex; align-items:center; gap:6px; margin-bottom:4px;
+    padding:4px 8px; border-radius:3px; background:var(--bg3); border:1px solid var(--border);
+  }
+  .fgh-label { font-family:var(--mono); font-size:10px; letter-spacing:1.2px; text-transform:uppercase; flex:1; }
+  .fgh-label.ltx { color:var(--accent); }
+  .fgh-label.xml { color:var(--info); }
+  .fgh-label.cat { color:var(--warn); }
+
   .loaded-file {
-    display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:3px;
-    font-family:var(--mono); font-size:10px; color:var(--text2);
-    border:1px solid var(--border); margin-bottom:3px; background:var(--bg3);
+    display:flex; align-items:center; gap:6px; padding:3px 8px;
+    border-radius:3px; font-family:var(--mono); font-size:10px; color:var(--text2);
+    border:1px solid var(--border); margin-bottom:2px; background:var(--bg);
   }
-  .loaded-file .lf-tag {
-    font-size:9px; padding:1px 5px; border-radius:2px; font-weight:700; letter-spacing:.5px;
-  }
+  .lf-tag { font-size:9px; padding:1px 5px; border-radius:2px; font-weight:700; letter-spacing:.5px; flex-shrink:0; }
   .lf-tag.ltx { background:#2a3a1a; color:var(--accent); }
   .lf-tag.xml { background:#1a2a3a; color:var(--info); }
   .lf-tag.cat { background:#3a2a1a; color:var(--warn); }
-  .loaded-file .lf-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .loaded-file .lf-rm { color:var(--text3); cursor:pointer; flex-shrink:0; }
-  .loaded-file .lf-rm:hover { color:var(--danger); }
+  .lf-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lf-rm { color:var(--text3); cursor:pointer; flex-shrink:0; }
+  .lf-rm:hover { color:var(--danger); }
 
+  /* ── ITEMS TAB ── */
   .stats-bar {
-    padding:6px 12px; background:var(--bg3); border-bottom:1px solid var(--border);
-    font-family:var(--mono); font-size:10px; color:var(--text3); display:flex; gap:12px;
+    padding:5px 12px; background:var(--bg3); border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:10px; color:var(--text3); display:flex; gap:12px; flex-shrink:0;
   }
   .stats-bar span { color:var(--text2); }
 
-  /* ── SEARCH ── */
-  .search-wrap { padding:8px; display:flex; gap:6px; align-items:center; }
+  .search-wrap { padding:8px; display:flex; gap:6px; align-items:center; flex-shrink:0; border-bottom:1px solid var(--border); }
   .search-wrap input { flex:1; }
 
-  /* ── ITEM LIST (left) ── */
+  .cat-filter { padding:4px 10px 6px; display:flex; gap:5px; flex-wrap:wrap; flex-shrink:0; border-bottom:1px solid var(--border); }
+  .cf-chip {
+    font-family:var(--mono); font-size:9px; padding:2px 7px; border-radius:12px;
+    border:1px solid var(--border2); cursor:pointer; color:var(--text3); transition:all .12s;
+  }
+  .cf-chip:hover,.cf-chip.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+
   .item-list-wrap { padding:4px 0; }
   .item-entry {
     padding:4px 10px 4px 14px; display:flex; align-items:center; gap:6px;
-    cursor:grab; border-bottom:1px solid #181e14; transition:background .1s;
-    user-select:none;
+    cursor:grab; border-bottom:1px solid #181e14; transition:background .1s; user-select:none;
   }
   .item-entry:hover { background:var(--bg4); }
   .item-entry.dragging-src { opacity:.4; }
   .item-entry.in-section { border-left:2px solid var(--accent-dim); }
-  .ie-id {
-    font-family:var(--mono); font-size:11px; color:var(--text2); flex:1;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;
-  }
-  .ie-name {
-    font-family:var(--sans); font-size:11px; color:var(--text3); font-style:italic;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    max-width:130px; flex-shrink:0;
-  }
+  .ie-id { font-family:var(--mono); font-size:11px; color:var(--text2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  .ie-name { font-family:var(--sans); font-size:11px; color:var(--text3); font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px; flex-shrink:0; }
   .item-entry:hover .ie-name { color:var(--text2); }
-  .ie-section-badge {
-    font-size:9px; font-family:var(--mono); color:var(--text3);
-    background:var(--bg3); border:1px solid var(--border); border-radius:2px;
-    padding:0 4px; flex-shrink:0;
-  }
+  .ie-section-badge { font-size:9px; font-family:var(--mono); color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:2px; padding:0 4px; flex-shrink:0; }
 
-  /* ── CENTER PANEL — SECTIONS ── */
-  .sections-toolbar {
-    padding:8px; border-bottom:1px solid var(--border); display:flex; gap:6px; align-items:center; flex-shrink:0;
-  }
+  /* ── CENTER: SECTIONS ── */
+  .sections-toolbar { padding:8px; border-bottom:1px solid var(--border); display:flex; gap:6px; align-items:center; flex-shrink:0; }
   .sections-toolbar input { flex:1; }
 
   .section-card {
-    border:1px solid var(--border); border-radius:3px; margin:6px; overflow:visible;
+    border:1px solid var(--border); border-radius:3px; margin:6px;
     background:var(--bg3); transition:border-color .15s;
   }
   .section-card.drag-over { border-color:var(--accent); background:#1a2014; }
-  .section-card.selected { border-color:var(--accent-dim); }
+  .section-card.macro { border-color:#2a3a4a; }
+  .section-card.macro .section-header { background:#111820; }
+  .section-card.macro .sec-name-display { color:var(--info); }
 
   .section-header {
     padding:7px 10px; display:flex; align-items:center; gap:8px;
@@ -190,48 +194,89 @@
   }
   .section-header:hover { background:#222c1a; }
   .section-card.collapsed .section-header { border-bottom:none; }
-  .section-card.collapsed .section-body { display:none; }
+  .section-card.collapsed .section-inherit-list,
+  .section-card.collapsed .section-body,
+  .section-card.collapsed .section-footer { display:none; }
 
-  .sec-chevron { font-size:9px; color:var(--text3); transition:transform .15s; }
+  .sec-chevron { font-size:9px; color:var(--text3); transition:transform .15s; flex-shrink:0; }
   .section-card.collapsed .sec-chevron { transform:rotate(-90deg); }
 
-  .sec-name { font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:700; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
-  .sec-parent { font-family:var(--mono); font-size:10px; color:var(--info); }
-  .sec-count { font-family:var(--mono); font-size:10px; color:var(--text3); }
-  .sec-actions { display:flex; gap:4px; }
+  /* Inline-editable name */
+  .sec-name-display {
+    font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:700;
+    flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    cursor:text; padding:1px 3px; border-radius:2px; border:1px solid transparent;
+    transition:border-color .1s;
+  }
+  .sec-name-display:hover { border-color:var(--accent-dim); background:#1a2214; }
+  .sec-name-input {
+    font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:700;
+    background:var(--bg); border:1px solid var(--accent); border-radius:2px;
+    padding:1px 5px; flex:1; min-width:60px; outline:none;
+  }
 
+  .sec-macro-badge { font-size:9px; font-family:var(--mono); padding:1px 5px; border-radius:2px; background:#1a2a3a; color:var(--info); border:1px solid #2a3a4a; flex-shrink:0; }
+  .sec-count { font-family:var(--mono); font-size:10px; color:var(--text3); flex-shrink:0; white-space:nowrap; }
+  .sec-actions { display:flex; gap:4px; flex-shrink:0; }
+
+  /* ── INHERITANCE LIST ── */
+  .section-inherit-list { background:#0c1016; border-bottom:1px solid var(--border); padding:4px 0; }
+  .sec-inherit-header {
+    padding:3px 10px; font-family:var(--mono); font-size:9px;
+    color:#2a6a7a; letter-spacing:1.5px; text-transform:uppercase;
+    display:flex; align-items:center; gap:6px;
+  }
+  .sec-inherit-header span { flex:1; }
+
+  .sec-inherit-item {
+    padding:3px 10px 3px 16px; display:flex; align-items:center; gap:6px;
+    font-family:var(--mono); font-size:11px; color:#5a9aba;
+    cursor:grab; border-bottom:1px solid #0e1620; transition:background .1s;
+    user-select:none; background:#0c1016;
+  }
+  .sec-inherit-item:hover { background:#101c26; color:#80c0d8; }
+  .sec-inherit-item.dragging-src { opacity:.35; }
+  .sec-inherit-item .drag-handle { color:#2a5a6a; font-size:12px; cursor:grab; }
+  .sec-inherit-item .si-arrow { font-size:10px; color:#2a6a7a; flex-shrink:0; }
+  .sec-inherit-item .si-id { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .sec-inherit-item .si-rm { color:#1a4a5a; cursor:pointer; flex-shrink:0; opacity:0; }
+  .sec-inherit-item:hover .si-rm { opacity:1; }
+  .sec-inherit-item .si-rm:hover { color:var(--danger); }
+
+  .inherit-drop-placeholder {
+    height:24px; border:1px dashed #1a4a5a; border-radius:2px; margin:3px 10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-family:var(--mono); color:#2a5a6a;
+  }
+  .inherit-add-row {
+    display:flex; gap:5px; padding:5px 10px; border-top:1px solid #1a2a3a;
+  }
+  .inherit-add-row input {
+    flex:1; font-size:11px; background:#0a1018; border-color:#1a4a5a; color:#7ab8d0;
+  }
+  .inherit-add-row input:focus { border-color:var(--info); }
+  .inherit-add-row .btn {
+    font-size:10px; padding:2px 8px; border-color:#2a5a6a; color:#5a9aba; background:#0e1a28;
+  }
+  .inherit-add-row .btn:hover { background:var(--info-dim); border-color:var(--info); color:#fff; }
+
+  /* ── SECTION BODY ── */
   .section-body { padding:4px 0; min-height:32px; }
-  .section-body.drop-target { background:#1a2014; }
-
   .sec-item {
     padding:3px 10px 3px 16px; display:flex; align-items:center; gap:6px;
     font-family:var(--mono); font-size:11px; color:var(--text2);
-    cursor:grab; border-bottom:1px solid #1a1f16; transition:background .1s;
-    user-select:none;
+    cursor:grab; border-bottom:1px solid #1a1f16; transition:background .1s; user-select:none;
   }
   .sec-item:hover { background:var(--bg4); color:var(--text); }
   .sec-item.dragging-src { opacity:.35; }
+  .sec-item .drag-handle { color:var(--text3); font-size:12px; cursor:grab; }
   .sec-item .si-id { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
   .sec-item .si-name { font-family:var(--sans); font-style:italic; font-size:11px; color:var(--text3); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .sec-item:hover .si-name { color:var(--text2); }
   .sec-item .si-rm { color:var(--text3); cursor:pointer; flex-shrink:0; opacity:0; }
   .sec-item:hover .si-rm { opacity:1; }
   .sec-item .si-rm:hover { color:var(--danger); }
-  .sec-item .drag-handle { color:var(--text3); font-size:12px; cursor:grab; }
 
-  .drop-placeholder {
-    height:28px; border:1px dashed var(--accent-dim); border-radius:2px; margin:2px 10px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:10px; font-family:var(--mono); color:var(--accent-dim);
-  }
-
-  .section-footer {
-    border-top:1px solid var(--border); padding:6px 10px;
-    display:flex; gap:6px; align-items:center;
-  }
-  .section-footer input { flex:1; font-size:11px; }
-
-  /* ── COMMENT in section ── */
   .sec-comment {
     padding:3px 10px 3px 16px; font-family:var(--mono); font-size:10px;
     color:var(--text3); display:flex; gap:6px; align-items:center;
@@ -241,12 +286,20 @@
   .sec-comment:hover .si-rm { opacity:1; }
   .sec-comment .si-rm:hover { color:var(--danger); }
 
-  /* ── RIGHT PANEL — EXPORT ── */
-  .export-wrap { padding:8px; display:flex; flex-direction:column; gap:8px; height:100%; }
-  .export-wrap textarea {
-    flex:1; resize:none; font-size:11px; line-height:1.5; background:var(--bg);
-    white-space:pre; overflow-wrap:normal; overflow-x:auto;
+  .drop-placeholder {
+    height:28px; border:1px dashed var(--accent-dim); border-radius:2px; margin:2px 10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-family:var(--mono); color:var(--accent-dim);
   }
+
+  .section-footer {
+    border-top:1px solid var(--border); padding:6px 10px; display:flex; gap:6px; align-items:center;
+  }
+  .section-footer input { flex:1; font-size:11px; }
+
+  /* ── RIGHT PANEL ── */
+  .export-wrap { padding:8px; display:flex; flex-direction:column; gap:8px; height:100%; }
+  .export-wrap textarea { flex:1; resize:none; font-size:11px; line-height:1.5; background:var(--bg); white-space:pre; overflow-wrap:normal; overflow-x:auto; }
   .export-actions { display:flex; gap:6px; }
 
   /* ── TOOLTIP ── */
@@ -256,7 +309,7 @@
     padding:8px 12px; max-width:340px; font-size:12px;
     box-shadow:0 4px 20px rgba(0,0,0,.5); display:none;
   }
-  #tooltip .tt-id { font-family:var(--mono); color:var(--accent); font-size:11px; margin-bottom:4px; }
+  #tooltip .tt-id   { font-family:var(--mono); color:var(--accent); font-size:11px; margin-bottom:4px; }
   #tooltip .tt-name { font-weight:700; font-size:14px; color:var(--text); margin-bottom:4px; }
   #tooltip .tt-desc { color:var(--text2); font-size:11px; line-height:1.5; max-height:120px; overflow:hidden; }
 
@@ -270,48 +323,14 @@
   #notif.show { transform:translateX(-50%) translateY(0); }
 
   /* ── MODAL ── */
-  .modal-overlay {
-    position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:9998;
-    display:none; align-items:center; justify-content:center;
-  }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:9998; display:none; align-items:center; justify-content:center; }
   .modal-overlay.show { display:flex; }
-  .modal {
-    background:var(--bg2); border:1px solid var(--border2); border-radius:5px;
-    padding:20px; max-width:480px; width:90%; max-height:80vh; overflow-y:auto;
-  }
+  .modal { background:var(--bg2); border:1px solid var(--border2); border-radius:5px; padding:20px; max-width:480px; width:90%; max-height:80vh; overflow-y:auto; }
   .modal h3 { font-size:16px; font-weight:700; margin-bottom:12px; color:var(--accent); text-transform:uppercase; letter-spacing:1px; }
   .modal p { font-size:13px; color:var(--text2); margin-bottom:10px; line-height:1.5; }
-  .modal-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
-  .modal-row label { font-size:12px; color:var(--text3); min-width:80px; }
-  .modal-row input, .modal-row select { flex:1; }
   .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
 
-  .cat-filter { padding:4px 10px; display:flex; gap:6px; flex-wrap:wrap; }
-  .cf-chip {
-    font-family:var(--mono); font-size:9px; padding:2px 7px; border-radius:12px;
-    border:1px solid var(--border2); cursor:pointer; color:var(--text3); transition:all .12s;
-  }
-  .cf-chip:hover,.cf-chip.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
-
-  .empty-note {
-    text-align:center; padding:20px; font-family:var(--mono); font-size:11px; color:var(--text3);
-  }
-
-  /* ── MACRO CATEGORIES special rendering ── */
-  .sec-macro-badge {
-    font-size:9px; font-family:var(--mono); padding:1px 5px; border-radius:2px;
-    background:#1a2a3a; color:var(--info); border:1px solid #2a3a4a; flex-shrink:0;
-  }
-
-  .section-card.macro { border-color:#2a3a4a; }
-  .section-card.macro .section-header { background:#111820; }
-  .section-card.macro .sec-name { color:var(--info); }
-
-  .sec-inheritance {
-    font-family:var(--mono); font-size:10px; color:var(--info); padding:4px 10px;
-    border-bottom:1px solid var(--border); background:#0e1218;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
+  .empty-note { text-align:center; padding:20px; font-family:var(--mono); font-size:11px; color:var(--text3); }
 </style>
 </head>
 <body>
@@ -327,47 +346,55 @@
 
 <div class="app" id="appGrid">
 
-  <!-- ═══ LEFT: Files + Item Browser ═══ -->
+  <!-- ═══ LEFT PANEL ═══ -->
   <div class="panel" id="leftPanel">
     <div class="panel-header">
-      <span class="panel-title">Files &amp; Items</span>
+      <span class="panel-title">Browser</span>
     </div>
 
-    <!-- File drop zones -->
-    <div style="flex-shrink:0; border-bottom:1px solid var(--border);">
-      <div class="file-zone" onclick="document.getElementById('filePickerCat').click()" title="Load grounded_trade_categories.ltx">
-        <input type="file" id="filePickerCat" accept=".ltx" onchange="loadCatFile(this)">
-        📂 Load <strong>trade_categories.ltx</strong>
-      </div>
-      <div class="file-zone" onclick="document.getElementById('filePickerLtx').click()" title="Load any number of .ltx config files">
-        <input type="file" id="filePickerLtx" accept=".ltx" multiple onchange="loadLtxFiles(this)">
-        📂 Load <strong>.ltx config files</strong> (multiple)
-      </div>
-      <div class="file-zone" onclick="document.getElementById('filePickerXml').click()" title="Load any number of .xml string files">
-        <input type="file" id="filePickerXml" accept=".xml" multiple onchange="loadXmlFiles(this)">
-        📂 Load <strong>.xml string files</strong> (multiple)
-      </div>
-      <div class="loaded-files" id="loadedFilesList"></div>
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabBtnItems" onclick="switchTab('items')">Items</button>
+      <button class="tab-btn"        id="tabBtnFiles" onclick="switchTab('files')">Files</button>
     </div>
 
-    <div class="stats-bar" id="statsBar">
-      <span>Items: <span id="statItems">0</span></span>
-      <span>Strings: <span id="statStrings">0</span></span>
-      <span>Sections: <span id="statSections">0</span></span>
+    <!-- ITEMS TAB -->
+    <div class="tab-pane active" id="tabItems">
+      <div class="stats-bar">
+        <span>Items: <span id="statItems">0</span></span>
+        <span>Strings: <span id="statStrings">0</span></span>
+        <span>Sections: <span id="statSections">0</span></span>
+      </div>
+      <div class="search-wrap">
+        <input type="text" id="itemSearch" placeholder="Search items…" oninput="renderItemList()">
+        <select id="filterMode" onchange="renderItemList()" style="font-size:11px;padding:4px 6px;">
+          <option value="all">All</option>
+          <option value="unplaced">Unplaced</option>
+          <option value="placed">Placed</option>
+        </select>
+      </div>
+      <div class="cat-filter" id="catFilter"></div>
+      <div class="panel-body" id="itemListPanel">
+        <div class="empty-note">Load files to populate item list</div>
+      </div>
     </div>
 
-    <!-- Item search -->
-    <div class="search-wrap" style="flex-shrink:0; border-bottom:1px solid var(--border);">
-      <input type="text" id="itemSearch" placeholder="Search items…" oninput="renderItemList()">
-      <select id="filterMode" onchange="renderItemList()" style="font-size:11px; padding:4px 6px;">
-        <option value="all">All</option>
-        <option value="unplaced">Unplaced</option>
-        <option value="placed">Placed</option>
-      </select>
-    </div>
-    <div class="cat-filter" id="catFilter"></div>
-    <div class="panel-body" id="itemListPanel">
-      <div class="empty-note">Load files to populate item list</div>
+    <!-- FILES TAB -->
+    <div class="tab-pane" id="tabFiles">
+      <div class="file-tab-body" id="fileTabBody">
+        <div class="file-zone" onclick="document.getElementById('fpCat').click()">
+          <input type="file" id="fpCat" accept=".ltx" onchange="loadCatFile(this)">
+          📂 Load <strong>trade_categories.ltx</strong>
+        </div>
+        <div class="file-zone" onclick="document.getElementById('fpLtx').click()">
+          <input type="file" id="fpLtx" accept=".ltx" multiple onchange="loadLtxFiles(this)">
+          📂 Add <strong>.ltx config files</strong> (multiple)
+        </div>
+        <div class="file-zone" onclick="document.getElementById('fpXml').click()">
+          <input type="file" id="fpXml" accept=".xml" multiple onchange="loadXmlFiles(this)">
+          📂 Add <strong>.xml string files</strong> (multiple)
+        </div>
+        <div id="loadedFilesList"></div>
+      </div>
     </div>
   </div>
 
@@ -381,12 +408,12 @@
       <button class="btn small" onclick="expandAll()">Expand All</button>
     </div>
     <div class="sections-toolbar">
-      <input type="text" id="newSecName" placeholder="New section name…" onkeydown="if(e.key==='Enter')addSection()">
-      <input type="text" id="newSecParent" placeholder="Inherits… (optional)" style="width:160px" list="sectionNamesList">
+      <input type="text" id="newSecName" placeholder="New section name…">
+      <input type="text" id="newSecParent" placeholder="Inherits… (optional)" style="width:155px" list="sectionNamesList">
       <datalist id="sectionNamesList"></datalist>
       <button class="btn small primary" onclick="addSection()">+ Section</button>
     </div>
-    <div style="flex-shrink:0; padding:4px 8px 6px; border-bottom:1px solid var(--border); display:flex; gap:6px; align-items:center;">
+    <div style="flex-shrink:0;padding:4px 8px 6px;border-bottom:1px solid var(--border);display:flex;gap:6px;">
       <input type="text" id="secSearch" placeholder="Filter sections…" style="flex:1" oninput="renderSections()">
     </div>
     <div class="panel-body" id="sectionsPanel">
@@ -396,11 +423,9 @@
 
   <!-- ═══ RIGHT: Export ═══ -->
   <div class="panel" id="rightPanel">
-    <div class="panel-header">
-      <span class="panel-title">Export</span>
-    </div>
+    <div class="panel-header"><span class="panel-title">Export</span></div>
     <div class="export-wrap">
-      <textarea id="exportArea" readonly placeholder="; Export will appear here…&#10;; Load files and build sections first."></textarea>
+      <textarea id="exportArea" readonly placeholder="; Export will appear here…"></textarea>
       <div class="export-actions">
         <button class="btn small" onclick="copyExport()">⎘ Copy</button>
         <button class="btn small primary" onclick="downloadExport()">↓ Download .ltx</button>
@@ -410,737 +435,584 @@
 
 </div>
 
-<!-- Tooltip -->
 <div id="tooltip">
   <div class="tt-id" id="ttId"></div>
   <div class="tt-name" id="ttName"></div>
   <div class="tt-desc" id="ttDesc"></div>
 </div>
-
-<!-- Notif -->
 <div id="notif"></div>
 
-<!-- Help modal -->
 <div class="modal-overlay" id="helpModal">
   <div class="modal">
     <h3>How to use</h3>
-    <p><strong>1. Load files</strong><br>
-      Start by loading your <code>grounded_trade_categories.ltx</code>. Then load as many <code>.ltx</code> config files (like <code>w_akm.ltx</code>, <code>items_medical.ltx</code>) and <code>.xml</code> string files (like <code>st_items_weapons.xml</code>) as you want. The tool cross-references them automatically to show real item names and descriptions.</p>
-    <p><strong>2. Browse items</strong><br>
-      The left panel shows all known item IDs. Hover any item for its full name and description. Filter by "Unplaced" to find items not yet in any section. Use the category chips to filter by prefix group.</p>
-    <p><strong>3. Edit sections</strong><br>
-      The center panel shows all sections. Drag items from the left panel into a section. Drag items between sections. Use the <code>+ Item</code> field in each section footer to add manually. Click ✕ to remove. Sections support inheritance (the <code>[name]:parent</code> syntax).</p>
-    <p><strong>4. Create sections</strong><br>
-      Type a name and optional parent in the toolbar at the top of the center panel, then click <code>+ Section</code>. Parent names are autocompleted from existing sections.</p>
-    <p><strong>5. Export</strong><br>
-      Click <em>Refresh Export</em> in the header to regenerate the <code>.ltx</code> output. Download or copy it.</p>
-    <div class="modal-actions">
-      <button class="btn primary" onclick="hideHelp()">Got it</button>
-    </div>
+    <p><strong>Files tab</strong> — Load your trade_categories.ltx, then add as many .ltx config and .xml string files as you need. Use "Clear All" to remove all files of one type at once.</p>
+    <p><strong>Items tab</strong> — Browse all known item IDs with their real in-game names. Hover any item for its full description. Filter by prefix chips or placement status. Drag items directly into sections.</p>
+    <p><strong>Sections</strong> — Click a section name directly to rename it inline. Inheritance entries are shown as a separate list under the header — drag to reorder, click ✕ to remove, type to add new ones. Drag items from the left panel or between sections to reorganize.</p>
+    <p><strong>Export</strong> — Click Refresh Export then Download or Copy.</p>
+    <div class="modal-actions"><button class="btn primary" onclick="hideHelp()">Got it</button></div>
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  STATE
-// ══════════════════════════════════════════════════════════════════
-let itemDB      = {};   // id → { inv_name_key, description_key }
-let stringDB    = {};   // string_id → text
-let sections    = [];   // [{id, name, parent, items:[{type:'item'|'comment', val}], collapsed, isMacro}]
-let loadedFiles = [];   // [{name, type:'ltx'|'xml'|'cat'}]
+// ══════════════════════════════════════════════
+let itemDB      = {};  // id → {inv_name_key, description_key}
+let stringDB    = {};  // string_id → text
+let sections    = [];  // [{id, name, parents:[], items:[{type,val}], collapsed, isMacro}]
+let loadedFiles = [];  // [{name, type:'ltx'|'xml'|'cat'}]
 let nextSecId   = 1;
-let filterCat   = '';   // active prefix filter
+let filterCat   = '';
 
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+function switchTab(tab) {
+  ['items','files'].forEach(t => {
+    document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t===tab);
+    document.getElementById('tab'   + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t===tab);
+  });
+}
+
+// ══════════════════════════════════════════════
 //  FILE LOADING
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function loadCatFile(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
+  const file = input.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
     parseCatFile(e.target.result);
-    loadedFiles = loadedFiles.filter(f => f.type !== 'cat');
-    loadedFiles.unshift({ name: file.name, type: 'cat' });
-    renderLoadedFiles();
-    renderSections();
-    renderItemList();
-    renderExport();
-    updateStats();
-    notify('Loaded: ' + file.name);
+    loadedFiles = loadedFiles.filter(f => f.type!=='cat');
+    loadedFiles.unshift({name:file.name,type:'cat'});
+    afterLoad(); notify('Loaded: '+file.name);
   };
-  reader.readAsText(file);
-  input.value = '';
+  r.readAsText(file); input.value='';
 }
 
 function loadLtxFiles(input) {
-  const files = Array.from(input.files);
-  let done = 0;
+  const files = Array.from(input.files); let done=0;
   files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
+    const r = new FileReader();
+    r.onload = e => {
       parseLtxConfig(e.target.result);
-      loadedFiles = loadedFiles.filter(f => f.name !== file.name);
-      loadedFiles.push({ name: file.name, type: 'ltx' });
-      done++;
-      if (done === files.length) {
-        renderLoadedFiles(); renderItemList(); renderExport(); updateStats();
-        notify(`Loaded ${files.length} .ltx file(s)`);
-      }
+      loadedFiles = loadedFiles.filter(f => !(f.name===file.name && f.type==='ltx'));
+      loadedFiles.push({name:file.name,type:'ltx'});
+      if (++done===files.length) { afterLoad(); notify(`Loaded ${files.length} .ltx file(s)`); }
     };
-    reader.readAsText(file);
+    r.readAsText(file);
   });
-  input.value = '';
+  input.value='';
 }
 
 function loadXmlFiles(input) {
-  const files = Array.from(input.files);
-  let done = 0;
+  const files = Array.from(input.files); let done=0;
   files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
+    const r = new FileReader();
+    r.onload = e => {
       parseXmlStrings(e.target.result);
-      loadedFiles = loadedFiles.filter(f => f.name !== file.name);
-      loadedFiles.push({ name: file.name, type: 'xml' });
-      done++;
-      if (done === files.length) {
-        renderLoadedFiles(); renderItemList(); renderSections(); updateStats();
-        notify(`Loaded ${files.length} .xml file(s)`);
-      }
+      loadedFiles = loadedFiles.filter(f => !(f.name===file.name && f.type==='xml'));
+      loadedFiles.push({name:file.name,type:'xml'});
+      if (++done===files.length) { afterLoad(); notify(`Loaded ${files.length} .xml file(s)`); }
     };
-    reader.readAsText(file, 'windows-1251');
+    r.readAsText(file,'windows-1251');
   });
-  input.value = '';
+  input.value='';
 }
 
-// ── Parse trade_categories.ltx ──
+function clearLtxFiles() {
+  loadedFiles = loadedFiles.filter(f=>f.type!=='ltx');
+  renderLoadedFiles(); notify('Cleared all .ltx config files');
+}
+function clearXmlFiles() {
+  loadedFiles = loadedFiles.filter(f=>f.type!=='xml');
+  renderLoadedFiles(); notify('Cleared all .xml string files');
+}
+function unloadFile(idx) { loadedFiles.splice(idx,1); renderLoadedFiles(); }
+
+function afterLoad() { renderLoadedFiles(); renderSections(); renderItemList(); renderExport(); updateStats(); }
+
+// ── Parsers ──
 function parseCatFile(text) {
-  sections = [];
-  nextSecId = 1;
-  const lines = text.split('\n');
-  let curSec = null;
-
-  for (let rawLine of lines) {
-    const line = rawLine.trimEnd();
-    const trimmed = line.trim();
-
-    // Section header: [name] or [name]:parent,parent2,...
-    const headerMatch = trimmed.match(/^\[([^\]]+)\](?::(.+))?/);
-    if (headerMatch) {
-      const name    = headerMatch[1].trim();
-      const parent  = headerMatch[2] ? headerMatch[2].trim() : '';
-      const isMacro = !!(parent && parent.includes(','));
-      curSec = { id: nextSecId++, name, parent, items: [], collapsed: false, isMacro };
-      sections.push(curSec);
-      continue;
+  sections=[]; nextSecId=1;
+  let curSec=null;
+  for (const rawLine of text.split('\n')) {
+    const t = rawLine.trim();
+    const hm = t.match(/^\[([^\]]+)\](?::(.+))?/);
+    if (hm) {
+      const name = hm[1].trim();
+      const parents = hm[2] ? hm[2].trim().split(',').map(p=>p.trim()).filter(Boolean) : [];
+      curSec = {id:nextSecId++, name, parents, items:[], collapsed:false, isMacro:parents.length>1};
+      sections.push(curSec); continue;
     }
-
     if (!curSec) continue;
-
-    // Comment line
-    if (trimmed.startsWith(';')) {
-      const commentText = trimmed.slice(1).trim();
-      if (commentText) {
-        curSec.items.push({ type: 'comment', val: commentText });
-      }
-      continue;
-    }
-
-    // Empty line — skip
-    if (!trimmed) continue;
-
-    // Item line: id optionally followed by ;comment
-    const itemMatch = trimmed.match(/^([A-Za-z0-9_.\-]+)(?:\s*;.*)?$/);
-    if (itemMatch) {
-      const id = itemMatch[1].trim();
-      curSec.items.push({ type: 'item', val: id });
-      // Register in itemDB if not yet known
-      if (!itemDB[id]) itemDB[id] = { inv_name_key: '', description_key: '' };
-    }
+    if (t.startsWith(';')) { const c=t.slice(1).trim(); if(c) curSec.items.push({type:'comment',val:c}); continue; }
+    if (!t) continue;
+    const im = t.match(/^([A-Za-z0-9_.\-]+)(?:\s*;.*)?$/);
+    if (im) { const id=im[1]; curSec.items.push({type:'item',val:id}); if(!itemDB[id]) itemDB[id]={inv_name_key:'',description_key:''}; }
   }
   updateSectionDatalist();
 }
 
-// ── Parse .ltx config files for inv_name / description ──
 function parseLtxConfig(text) {
-  const lines = text.split('\n');
-  let curId = null;
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-
-    // Section header
-    const headerMatch = line.match(/^\[([A-Za-z0-9_.\-]+)\]/);
-    if (headerMatch) {
-      curId = headerMatch[1];
-      if (!itemDB[curId]) itemDB[curId] = { inv_name_key: '', description_key: '' };
-      continue;
-    }
-
+  let curId=null;
+  for (const rawLine of text.split('\n')) {
+    const l = rawLine.trim();
+    const hm = l.match(/^\[([A-Za-z0-9_.\-]+)\]/);
+    if (hm) { curId=hm[1]; if(!itemDB[curId]) itemDB[curId]={inv_name_key:'',description_key:''}; continue; }
     if (!curId) continue;
-
-    // inv_name
-    const invNameMatch = line.match(/^inv_name\s*=\s*([A-Za-z0-9_.\-]+)/);
-    if (invNameMatch) {
-      itemDB[curId].inv_name_key = invNameMatch[1];
-      continue;
-    }
-
-    // description
-    const descMatch = line.match(/^description\s*=\s*([A-Za-z0-9_.\-]+)/);
-    if (descMatch) {
-      itemDB[curId].description_key = descMatch[1];
-    }
+    const nm=l.match(/^inv_name\s*=\s*([A-Za-z0-9_.\-]+)/); if(nm){itemDB[curId].inv_name_key=nm[1];continue;}
+    const dm=l.match(/^description\s*=\s*([A-Za-z0-9_.\-]+)/); if(dm){itemDB[curId].description_key=dm[1];}
   }
 }
 
-// ── Parse .xml string files ──
 function parseXmlStrings(text) {
-  // Use regex for speed (no DOM parse needed)
-  const re = /<string\s+id="([^"]+)"[^>]*>\s*<text>([\s\S]*?)<\/text>/g;
-  let m;
-  while ((m = re.exec(text)) !== null) {
-    const id  = m[1];
-    // Clean up STALKER xml formatting codes and whitespace
-    const raw = m[2]
-      .replace(/\\n/g, '\n')
-      .replace(/%c\[[^\]]+\]/g, '')
-      .replace(/\x95/g, '•')
-      .replace(/\n\s*\n/g, '\n')
-      .trim();
-    stringDB[id] = raw;
+  const re=/<string\s+id="([^"]+)"[^>]*>\s*<text>([\s\S]*?)<\/text>/g; let m;
+  while((m=re.exec(text))!==null){
+    stringDB[m[1]]=m[2].replace(/\\n/g,'\n').replace(/%c\[[^\]]+\]/g,'').replace(/\x95/g,'•').replace(/\n\s*\n/g,'\n').trim();
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  LOOKUPS
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 function getItemName(id) {
-  const entry = itemDB[id];
-  if (!entry) return '';
-  if (entry.inv_name_key && stringDB[entry.inv_name_key]) return stringDB[entry.inv_name_key];
-  if (entry.inv_name_key) return entry.inv_name_key; // fallback: show key
-  return '';
+  const e=itemDB[id]; if(!e) return '';
+  if(e.inv_name_key&&stringDB[e.inv_name_key]) return stringDB[e.inv_name_key];
+  return e.inv_name_key||'';
 }
-
 function getItemDesc(id) {
-  const entry = itemDB[id];
-  if (!entry) return '';
-  if (entry.description_key && stringDB[entry.description_key]) return stringDB[entry.description_key];
-  return '';
+  const e=itemDB[id]; if(!e) return '';
+  return (e.description_key&&stringDB[e.description_key])||'';
 }
-
 function getItemSection(id) {
-  for (const s of sections) {
-    if (s.items.some(it => it.type === 'item' && it.val === id)) return s.name;
-  }
+  for(const s of sections) if(s.items.some(it=>it.type==='item'&&it.val===id)) return s.name;
   return null;
 }
 
-// ══════════════════════════════════════════════════════════════════
-//  ITEM BROWSER (LEFT PANEL)
-// ══════════════════════════════════════════════════════════════════
-function renderCatFilter() {
-  const prefixes = new Set();
-  for (const id of Object.keys(itemDB)) {
-    const p = id.split('_')[0];
-    if (p) prefixes.add(p);
+// ══════════════════════════════════════════════
+//  FILE LIST RENDER
+// ══════════════════════════════════════════════
+function renderLoadedFiles() {
+  const el=document.getElementById('loadedFilesList');
+  const cat=loadedFiles.filter(f=>f.type==='cat');
+  const ltx=loadedFiles.filter(f=>f.type==='ltx');
+  const xml=loadedFiles.filter(f=>f.type==='xml');
+  let html='';
+
+  if(cat.length) {
+    html+=`<div class="file-group"><div class="file-group-header"><span class="fgh-label cat">Categories File</span></div>`
+      +cat.map(f=>fileRow(f)).join('')+`</div>`;
   }
-  const sorted = [...prefixes].sort();
-  const el = document.getElementById('catFilter');
-  el.innerHTML = `<span class="cf-chip ${filterCat===''?'active':''}" onclick="setFilter('')">All</span>` +
-    sorted.map(p => `<span class="cf-chip ${filterCat===p?'active':''}" onclick="setFilter('${p}')">${p}</span>`).join('');
+  if(ltx.length) {
+    html+=`<div class="file-group"><div class="file-group-header">
+      <span class="fgh-label ltx">LTX Config (${ltx.length})</span>
+      <button class="btn xs danger" onclick="clearLtxFiles()">Clear All</button>
+    </div>`+ltx.map(f=>fileRow(f)).join('')+`</div>`;
+  }
+  if(xml.length) {
+    html+=`<div class="file-group"><div class="file-group-header">
+      <span class="fgh-label xml">XML Strings (${xml.length})</span>
+      <button class="btn xs danger" onclick="clearXmlFiles()">Clear All</button>
+    </div>`+xml.map(f=>fileRow(f)).join('')+`</div>`;
+  }
+  if(!html) html='<div class="empty-note">No files loaded yet</div>';
+  el.innerHTML=html;
 }
 
-function setFilter(p) {
-  filterCat = p;
-  renderCatFilter();
-  renderItemList();
+function fileRow(f) {
+  const idx=loadedFiles.indexOf(f);
+  return `<div class="loaded-file">
+    <span class="lf-tag ${f.type}">${f.type.toUpperCase()}</span>
+    <span class="lf-name" title="${escHtml(f.name)}">${escHtml(f.name)}</span>
+    <span class="lf-rm" onclick="unloadFile(${idx})">✕</span>
+  </div>`;
 }
+
+// ══════════════════════════════════════════════
+//  ITEM BROWSER
+// ══════════════════════════════════════════════
+function renderCatFilter() {
+  const pfx=new Set(); for(const id of Object.keys(itemDB)){const p=id.split('_')[0];if(p)pfx.add(p);}
+  const el=document.getElementById('catFilter');
+  el.innerHTML=`<span class="cf-chip ${filterCat===''?'active':''}" onclick="setFilter('')">All</span>`
+    +[...pfx].sort().map(p=>`<span class="cf-chip ${filterCat===p?'active':''}" onclick="setFilter('${p}')">${p}</span>`).join('');
+}
+function setFilter(p){filterCat=p;renderCatFilter();renderItemList();}
 
 function renderItemList() {
-  const query   = (document.getElementById('itemSearch').value || '').toLowerCase();
-  const mode    = document.getElementById('filterMode').value;
-  const el      = document.getElementById('itemListPanel');
-  const allIds  = Object.keys(itemDB).sort();
-
-  const ids = allIds.filter(id => {
-    if (filterCat && !id.startsWith(filterCat + '_') && id !== filterCat) return false;
-    if (query && !id.toLowerCase().includes(query)) {
-      const name = getItemName(id).toLowerCase();
-      if (!name.includes(query)) return false;
-    }
-    const sec = getItemSection(id);
-    if (mode === 'unplaced' && sec) return false;
-    if (mode === 'placed'   && !sec) return false;
+  const query=(document.getElementById('itemSearch').value||'').toLowerCase();
+  const mode=document.getElementById('filterMode').value;
+  const el=document.getElementById('itemListPanel');
+  const ids=Object.keys(itemDB).sort().filter(id=>{
+    if(filterCat&&!id.startsWith(filterCat+'_')&&id!==filterCat) return false;
+    if(query&&!id.toLowerCase().includes(query)&&!getItemName(id).toLowerCase().includes(query)) return false;
+    const sec=getItemSection(id);
+    if(mode==='unplaced'&&sec) return false;
+    if(mode==='placed'&&!sec) return false;
     return true;
   });
-
-  if (!ids.length) {
-    el.innerHTML = '<div class="empty-note">No items match</div>';
-    return;
-  }
-
-  let html = '<div class="item-list-wrap">';
-  for (const id of ids) {
-    const name = getItemName(id);
-    const sec  = getItemSection(id);
-    const esc  = escHtml;
-    html += `<div class="item-entry${sec?' in-section':''}" draggable="true"
-      data-id="${esc(id)}"
-      onmouseenter="showTip(event,'${esc(id)}')" onmouseleave="hideTip()"
-      ondragstart="onItemDragStart(event,'${esc(id)}','browser')"
-      ondragend="onDragEnd(event)">
-      <span class="ie-id">${esc(id)}</span>
-      ${name ? `<span class="ie-name" title="${esc(name)}">${esc(name)}</span>` : ''}
-      ${sec ? `<span class="ie-section-badge">${esc(sec)}</span>` : ''}
+  if(!ids.length){el.innerHTML='<div class="empty-note">No items match</div>';return;}
+  let html='<div class="item-list-wrap">';
+  for(const id of ids){
+    const name=getItemName(id), sec=getItemSection(id);
+    html+=`<div class="item-entry${sec?' in-section':''}" draggable="true" data-id="${escHtml(id)}"
+      onmouseenter="showTip(event,'${escHtml(id)}')" onmouseleave="hideTip()"
+      ondragstart="onItemDragStart(event,'${escHtml(id)}')" ondragend="onDragEnd(event)">
+      <span class="ie-id">${escHtml(id)}</span>
+      ${name?`<span class="ie-name" title="${escHtml(name)}">${escHtml(name)}</span>`:''}
+      ${sec?`<span class="ie-section-badge">${escHtml(sec)}</span>`:''}
     </div>`;
   }
-  html += '</div>';
-  el.innerHTML = html;
-  renderCatFilter();
+  html+='</div>'; el.innerHTML=html; renderCatFilter();
 }
 
 function updateStats() {
-  document.getElementById('statItems').textContent   = Object.keys(itemDB).length;
-  document.getElementById('statStrings').textContent = Object.keys(stringDB).length;
-  document.getElementById('statSections').textContent = sections.length;
+  document.getElementById('statItems').textContent   =Object.keys(itemDB).length;
+  document.getElementById('statStrings').textContent =Object.keys(stringDB).length;
+  document.getElementById('statSections').textContent=sections.length;
 }
 
-// ══════════════════════════════════════════════════════════════════
-//  SECTIONS EDITOR (CENTER PANEL)
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  SECTIONS EDITOR
+// ══════════════════════════════════════════════
 function updateSectionDatalist() {
-  document.getElementById('sectionNamesList').innerHTML =
-    sections.map(s => `<option value="${escHtml(s.name)}">`).join('');
+  document.getElementById('sectionNamesList').innerHTML=sections.map(s=>`<option value="${escHtml(s.name)}">`).join('');
 }
 
 function addSection() {
-  const nameEl   = document.getElementById('newSecName');
-  const parentEl = document.getElementById('newSecParent');
-  const name     = nameEl.value.trim();
-  if (!name) { notify('Enter a section name'); return; }
-  if (sections.find(s => s.name === name)) { notify('Section already exists'); return; }
-  sections.push({ id: nextSecId++, name, parent: parentEl.value.trim(), items: [], collapsed: false, isMacro: false });
-  nameEl.value = ''; parentEl.value = '';
-  updateSectionDatalist();
-  renderSections();
-  renderExport();
-  updateStats();
-  notify('Section added: ' + name);
+  const nameEl=document.getElementById('newSecName');
+  const parEl =document.getElementById('newSecParent');
+  const name=nameEl.value.trim(); if(!name){notify('Enter a name');return;}
+  if(sections.find(s=>s.name===name)){notify('Already exists');return;}
+  const parents=parEl.value.trim()?parEl.value.trim().split(',').map(p=>p.trim()).filter(Boolean):[];
+  sections.push({id:nextSecId++,name,parents,items:[],collapsed:false,isMacro:parents.length>1});
+  nameEl.value='';parEl.value='';
+  updateSectionDatalist();renderSections();renderExport();updateStats();notify('Section added: '+name);
 }
-
 function removeSection(id) {
-  sections = sections.filter(s => s.id !== id);
-  updateSectionDatalist();
-  renderSections();
-  renderItemList();
-  renderExport();
-  updateStats();
+  sections=sections.filter(s=>s.id!==id);
+  updateSectionDatalist();renderSections();renderItemList();renderExport();updateStats();
 }
-
 function toggleSection(id) {
-  const s = sections.find(s => s.id === id);
-  if (s) { s.collapsed = !s.collapsed; renderSections(); }
+  const s=sections.find(s=>s.id===id); if(s){s.collapsed=!s.collapsed;renderSections();}
+}
+function collapseAll(){sections.forEach(s=>s.collapsed=true);renderSections();}
+function expandAll()  {sections.forEach(s=>s.collapsed=false);renderSections();}
+
+function removeItemFromSection(secId,idx){
+  const s=sections.find(s=>s.id===secId); if(s){s.items.splice(idx,1);renderSections();renderItemList();renderExport();}
+}
+function addItemToSection(secId){
+  const inp=document.getElementById('secAddItem_'+secId); if(!inp) return;
+  const id=inp.value.trim(); if(!id) return;
+  const s=sections.find(s=>s.id===secId); if(!s) return;
+  if(s.items.some(it=>it.type==='item'&&it.val===id)){notify('Already in section');return;}
+  s.items.push({type:'item',val:id}); if(!itemDB[id]) itemDB[id]={inv_name_key:'',description_key:''};
+  inp.value=''; renderSections();renderItemList();renderExport();updateStats();
+}
+function addCommentToSection(secId){
+  const inp=document.getElementById('secAddCmt_'+secId); if(!inp) return;
+  const t=inp.value.trim(); if(!t) return;
+  const s=sections.find(s=>s.id===secId); if(!s) return;
+  s.items.push({type:'comment',val:t}); inp.value=''; renderSections();renderExport();
 }
 
-function collapseAll() { sections.forEach(s => s.collapsed = true); renderSections(); }
-function expandAll()   { sections.forEach(s => s.collapsed = false); renderSections(); }
-
-function removeItemFromSection(secId, idx) {
-  const s = sections.find(s => s.id === secId);
-  if (s) { s.items.splice(idx, 1); renderSections(); renderItemList(); renderExport(); }
+// Inheritance
+function addInheritToSection(secId){
+  const inp=document.getElementById('inheritAdd_'+secId); if(!inp) return;
+  const val=inp.value.trim(); if(!val) return;
+  const s=sections.find(s=>s.id===secId); if(!s) return;
+  if(s.parents.includes(val)){notify('Already inherited');return;}
+  s.parents.push(val); s.isMacro=s.parents.length>1; inp.value='';
+  renderSections();renderExport();
+}
+function removeInherit(secId,idx){
+  const s=sections.find(s=>s.id===secId); if(!s) return;
+  s.parents.splice(idx,1); s.isMacro=s.parents.length>1;
+  renderSections();renderExport();
 }
 
-function addItemToSection(secId) {
-  const input = document.getElementById('secAddItem_' + secId);
-  if (!input) return;
-  const id = input.value.trim();
-  if (!id) return;
-  const s = sections.find(s => s.id === secId);
-  if (!s) return;
-  if (s.items.some(it => it.type === 'item' && it.val === id)) { notify('Already in section'); return; }
-  s.items.push({ type: 'item', val: id });
-  if (!itemDB[id]) itemDB[id] = { inv_name_key: '', description_key: '' };
-  input.value = '';
-  renderSections(); renderItemList(); renderExport(); updateStats();
-}
-
-function addCommentToSection(secId) {
-  const input = document.getElementById('secAddComment_' + secId);
-  if (!input) return;
-  const text = input.value.trim();
-  if (!text) return;
-  const s = sections.find(s => s.id === secId);
-  if (!s) return;
-  s.items.push({ type: 'comment', val: text });
-  input.value = '';
-  renderSections(); renderExport();
-}
-
-function editSectionName(id) {
-  const s = sections.find(s => s.id === id);
-  if (!s) return;
-  const n = prompt('Rename section:', s.name);
-  if (n && n.trim() && n.trim() !== s.name) {
-    // update parent refs
-    const old = s.name;
-    s.name = n.trim();
-    sections.forEach(sec => {
-      if (sec.parent) {
-        const parts = sec.parent.split(',').map(p => p.trim());
-        sec.parent = parts.map(p => p === old ? s.name : p).join(',');
-      }
-    });
-    updateSectionDatalist();
-    renderSections(); renderExport();
+// Inline rename
+function startRename(secId, spanEl) {
+  const s=sections.find(s=>s.id===secId); if(!s) return;
+  const inp=document.createElement('input');
+  inp.type='text'; inp.className='sec-name-input'; inp.value=s.name;
+  spanEl.replaceWith(inp); inp.focus(); inp.select();
+  function commit(){
+    const n=inp.value.trim();
+    if(n&&n!==s.name){
+      const old=s.name; s.name=n;
+      sections.forEach(sec=>{sec.parents=sec.parents.map(p=>p===old?n:p);});
+      updateSectionDatalist(); renderExport();
+    }
+    renderSections();
   }
-}
-
-function editSectionParent(id) {
-  const s = sections.find(s => s.id === id);
-  if (!s) return;
-  const n = prompt('Inheritance (comma-separated section names, empty for none):', s.parent);
-  if (n !== null) { s.parent = n.trim(); renderSections(); renderExport(); }
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();inp.blur();}
+    if(e.key==='Escape'){renderSections();}
+    e.stopPropagation();
+  });
+  inp.addEventListener('click',e=>e.stopPropagation());
 }
 
 function renderSections() {
-  const el    = document.getElementById('sectionsPanel');
-  const query = (document.getElementById('secSearch').value || '').toLowerCase();
-  const vis   = sections.filter(s => !query || s.name.toLowerCase().includes(query));
+  const el=document.getElementById('sectionsPanel');
+  const query=(document.getElementById('secSearch').value||'').toLowerCase();
+  const vis=sections.filter(s=>!query||s.name.toLowerCase().includes(query));
 
-  if (!vis.length) {
-    el.innerHTML = '<div class="empty-note">No sections. Load a file or create one.</div>';
-    updateSectionDatalist();
-    return;
-  }
+  if(!vis.length){el.innerHTML='<div class="empty-note">No sections. Load a file or create one.</div>';updateSectionDatalist();return;}
 
-  let html = '';
-  for (const s of vis) {
-    const itemCount = s.items.filter(it => it.type === 'item').length;
-    const isMacro   = s.isMacro || (s.parent && s.parent.includes(','));
-    const parentStr = s.parent ? `:${s.parent}` : '';
+  let html='';
+  for(const s of vis){
+    const itemCount=s.items.filter(it=>it.type==='item').length;
+    const isMacro=s.parents.length>1;
 
-    html += `<div class="section-card${s.collapsed?' collapsed':''}${isMacro?' macro':''}"
+    html+=`<div class="section-card${s.collapsed?' collapsed':''}${isMacro?' macro':''}"
       id="sec_${s.id}"
       ondragover="onSectionDragOver(event,${s.id})"
       ondragleave="onSectionDragLeave(event,${s.id})"
       ondrop="onDropInSection(event,${s.id})">`;
 
     // Header
-    html += `<div class="section-header" onclick="toggleSection(${s.id})">
+    html+=`<div class="section-header" onclick="toggleSection(${s.id})">
       <span class="sec-chevron">▶</span>
-      <span class="sec-name">[${escHtml(s.name)}]</span>
-      ${isMacro ? '<span class="sec-macro-badge">MACRO</span>' : ''}
-      ${s.parent ? `<span class="sec-parent" title="Inherits: ${escHtml(s.parent)}" onclick="event.stopPropagation();editSectionParent(${s.id})">:${escHtml(s.parent.length>24?s.parent.slice(0,22)+'…':s.parent)}</span>` : ''}
-      <span class="sec-count">${itemCount} items</span>
+      <span class="sec-name-display" onclick="event.stopPropagation();startRename(${s.id},this)" title="Click to rename">[${escHtml(s.name)}]</span>
+      ${isMacro?'<span class="sec-macro-badge">MACRO</span>':''}
+      <span class="sec-count">${itemCount} items${s.parents.length?` · <span style="color:var(--info)">${s.parents.length} inherit</span>`:''}</span>
       <div class="sec-actions" onclick="event.stopPropagation()">
-        <button class="btn xs" title="Rename" onclick="editSectionName(${s.id})">✎</button>
-        <button class="btn xs" title="Edit inheritance" onclick="editSectionParent(${s.id})">⇒</button>
-        <button class="btn xs danger" title="Delete section" onclick="removeSection(${s.id})">✕</button>
+        <button class="btn xs danger" onclick="removeSection(${s.id})">✕</button>
       </div>
     </div>`;
 
-    // Inheritance display (if any)
-    if (s.parent && !s.collapsed) {
-      html += `<div class="sec-inheritance">inherits → ${escHtml(s.parent)}</div>`;
+    // Inheritance list
+    if(!s.collapsed){
+      html+=`<div class="section-inherit-list">
+        <div class="sec-inherit-header"><span>↳ INHERITS</span></div>`;
+
+      if(s.parents.length===0){
+        html+=`<div class="inherit-drop-placeholder">No inheritance — add below or drag a section here</div>`;
+      }
+      for(let pi=0;pi<s.parents.length;pi++){
+        const p=s.parents[pi];
+        html+=`<div class="sec-inherit-item" draggable="true"
+          ondragstart="onInheritDragStart(event,${s.id},${pi})"
+          ondragend="onInheritDragEnd(event)"
+          ondragover="onInheritDragOver(event,${s.id},${pi})"
+          ondrop="onInheritDrop(event,${s.id},${pi})">
+          <span class="drag-handle">⋮⋮</span>
+          <span class="si-arrow">⇒</span>
+          <span class="si-id">${escHtml(p)}</span>
+          <span class="si-rm" onclick="removeInherit(${s.id},${pi})">✕</span>
+        </div>`;
+      }
+
+      html+=`<div class="inherit-add-row">
+        <input type="text" id="inheritAdd_${s.id}" placeholder="Add inherited section…" list="sectionNamesList"
+          onkeydown="if(event.key==='Enter')addInheritToSection(${s.id})">
+        <button class="btn" onclick="addInheritToSection(${s.id})">+ Inherit</button>
+      </div></div>`; // end section-inherit-list
     }
 
     // Body
-    html += `<div class="section-body" id="secBody_${s.id}">`;
-    if (s.items.length === 0) {
-      html += `<div class="drop-placeholder">Drop items here</div>`;
-    }
-    for (let idx = 0; idx < s.items.length; idx++) {
-      const it = s.items[idx];
-      if (it.type === 'comment') {
-        html += `<div class="sec-comment" draggable="true"
-          ondragstart="onSecItemDragStart(event,${s.id},${idx})"
-          ondragend="onDragEnd(event)">
+    html+=`<div class="section-body" id="secBody_${s.id}">`;
+    if(!s.items.length) html+=`<div class="drop-placeholder">Drop items here</div>`;
+    for(let idx=0;idx<s.items.length;idx++){
+      const it=s.items[idx];
+      if(it.type==='comment'){
+        html+=`<div class="sec-comment" draggable="true"
+          ondragstart="onSecItemDragStart(event,${s.id},${idx})" ondragend="onDragEnd(event)">
           <span class="drag-handle">⋮⋮</span>
-          <span style="flex:1; color:var(--text3)">; ${escHtml(it.val)}</span>
+          <span style="flex:1">; ${escHtml(it.val)}</span>
           <span class="si-rm" onclick="removeItemFromSection(${s.id},${idx})">✕</span>
         </div>`;
       } else {
-        const name = getItemName(it.val);
-        html += `<div class="sec-item" draggable="true"
-          data-id="${escHtml(it.val)}"
-          ondragstart="onSecItemDragStart(event,${s.id},${idx})"
-          ondragend="onDragEnd(event)"
+        const name=getItemName(it.val);
+        html+=`<div class="sec-item" draggable="true" data-id="${escHtml(it.val)}"
+          ondragstart="onSecItemDragStart(event,${s.id},${idx})" ondragend="onDragEnd(event)"
           onmouseenter="showTip(event,'${escHtml(it.val)}')" onmouseleave="hideTip()">
           <span class="drag-handle">⋮⋮</span>
           <span class="si-id">${escHtml(it.val)}</span>
-          ${name ? `<span class="si-name" title="${escHtml(name)}">${escHtml(name)}</span>` : ''}
+          ${name?`<span class="si-name" title="${escHtml(name)}">${escHtml(name)}</span>`:''}
           <span class="si-rm" onclick="removeItemFromSection(${s.id},${idx})">✕</span>
         </div>`;
       }
     }
-    html += `</div>`; // section-body
+    html+=`</div>`; // section-body
 
-    // Footer
-    if (!s.collapsed) {
-      html += `<div class="section-footer">
+    if(!s.collapsed){
+      html+=`<div class="section-footer">
         <input type="text" id="secAddItem_${s.id}" placeholder="Add item ID…" list="knownItemsList"
           onkeydown="if(event.key==='Enter')addItemToSection(${s.id})">
         <button class="btn xs primary" onclick="addItemToSection(${s.id})">+ Item</button>
-        <input type="text" id="secAddComment_${s.id}" placeholder="; comment…"
-          onkeydown="if(event.key==='Enter')addCommentToSection(${s.id})" style="width:110px">
+        <input type="text" id="secAddCmt_${s.id}" placeholder="; comment…" style="width:100px"
+          onkeydown="if(event.key==='Enter')addCommentToSection(${s.id})">
         <button class="btn xs" onclick="addCommentToSection(${s.id})">+ ;c</button>
       </div>`;
     }
 
-    html += `</div>`; // section-card
+    html+=`</div>`; // section-card
   }
 
-  // Datalist for item autocomplete
-  html += `<datalist id="knownItemsList">${Object.keys(itemDB).sort().map(id=>`<option value="${escHtml(id)}">`).join('')}</datalist>`;
-
-  el.innerHTML = html;
-  initSectionDragSort();
-  updateSectionDatalist();
-  updateStats();
+  html+=`<datalist id="knownItemsList">${Object.keys(itemDB).sort().map(id=>`<option value="${escHtml(id)}">`).join('')}</datalist>`;
+  el.innerHTML=html; updateSectionDatalist(); updateStats();
 }
 
-// ══════════════════════════════════════════════════════════════════
-//  DRAG AND DROP
-// ══════════════════════════════════════════════════════════════════
-let dragData = null; // {src:'browser'|'section', itemId, secId, idx}
+// ══════════════════════════════════════════════
+//  DRAG & DROP — Items
+// ══════════════════════════════════════════════
+let dragData=null;
 
-function onItemDragStart(e, id, src) {
-  dragData = { src, itemId: id, secId: null, idx: null };
-  e.dataTransfer.effectAllowed = 'move';
+function onItemDragStart(e,id){
+  dragData={src:'browser',itemId:id};
+  e.dataTransfer.effectAllowed='move';
   e.currentTarget.classList.add('dragging-src');
 }
-
-function onSecItemDragStart(e, secId, idx) {
-  const s  = sections.find(s => s.id === secId);
-  const it = s ? s.items[idx] : null;
-  dragData = { src: 'section', itemId: it ? it.val : null, itemObj: it, secId, idx };
-  e.dataTransfer.effectAllowed = 'move';
-  e.currentTarget.classList.add('dragging-src');
-  e.stopPropagation();
+function onSecItemDragStart(e,secId,idx){
+  const s=sections.find(s=>s.id===secId); const it=s?s.items[idx]:null;
+  dragData={src:'section',itemObj:it,secId,idx};
+  e.dataTransfer.effectAllowed='move';
+  e.currentTarget.classList.add('dragging-src'); e.stopPropagation();
 }
-
-function onDragEnd(e) {
+function onDragEnd(e){
   e.currentTarget.classList.remove('dragging-src');
-  document.querySelectorAll('.section-card').forEach(el => el.classList.remove('drag-over'));
-  dragData = null;
+  document.querySelectorAll('.section-card').forEach(el=>el.classList.remove('drag-over'));
+  dragData=null;
 }
-
-function onSectionDragOver(e, secId) {
-  if (!dragData) return;
+function onSectionDragOver(e,secId){
+  if(!dragData||dragData.src==='inherit') return;
+  e.preventDefault(); e.dataTransfer.dropEffect='move';
+  document.getElementById('sec_'+secId)?.classList.add('drag-over');
+}
+function onSectionDragLeave(e,secId){
+  const card=document.getElementById('sec_'+secId);
+  if(card&&!card.contains(e.relatedTarget)) card.classList.remove('drag-over');
+}
+function onDropInSection(e,targetSecId){
   e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  document.getElementById('sec_' + secId)?.classList.add('drag-over');
-}
+  document.getElementById('sec_'+targetSecId)?.classList.remove('drag-over');
+  if(!dragData||dragData.src==='inherit') return;
+  const ts=sections.find(s=>s.id===targetSecId); if(!ts) return;
 
-function onSectionDragLeave(e, secId) {
-  // Only remove if leaving the card itself
-  const related = e.relatedTarget;
-  const card = document.getElementById('sec_' + secId);
-  if (card && !card.contains(related)) card.classList.remove('drag-over');
-}
+  if(dragData.src==='browser'){
+    if(ts.items.some(it=>it.type==='item'&&it.val===dragData.itemId)){notify('Already in section');return;}
+    ts.items.push({type:'item',val:dragData.itemId});
+    renderSections();renderItemList();renderExport();
 
-function onDropInSection(e, targetSecId) {
-  e.preventDefault();
-  document.getElementById('sec_' + targetSecId)?.classList.remove('drag-over');
-  if (!dragData) return;
-
-  const targetSec = sections.find(s => s.id === targetSecId);
-  if (!targetSec) return;
-
-  if (dragData.src === 'browser') {
-    // Add from browser — check for dupe
-    if (targetSec.items.some(it => it.type === 'item' && it.val === dragData.itemId)) {
-      notify('Already in section'); return;
-    }
-    targetSec.items.push({ type: 'item', val: dragData.itemId });
-    renderSections(); renderItemList(); renderExport();
-
-  } else if (dragData.src === 'section') {
-    const sourceSec = sections.find(s => s.id === dragData.secId);
-    if (!sourceSec) return;
-    const [moved] = sourceSec.items.splice(dragData.idx, 1);
-    if (targetSecId === dragData.secId) {
-      // Re-insert at end in same section
-      sourceSec.items.push(moved);
-    } else {
-      // Check dupe
-      if (moved.type === 'item' && targetSec.items.some(it => it.type === 'item' && it.val === moved.val)) {
-        sourceSec.items.splice(dragData.idx, 0, moved); // undo
-        notify('Already in target section'); return;
+  } else if(dragData.src==='section'){
+    const ss=sections.find(s=>s.id===dragData.secId); if(!ss) return;
+    const [moved]=ss.items.splice(dragData.idx,1);
+    if(targetSecId===dragData.secId){ ss.items.push(moved); }
+    else {
+      if(moved.type==='item'&&ts.items.some(it=>it.type==='item'&&it.val===moved.val)){
+        ss.items.splice(dragData.idx,0,moved); notify('Already in target section'); return;
       }
-      targetSec.items.push(moved);
+      ts.items.push(moved);
     }
-    renderSections(); renderItemList(); renderExport();
+    renderSections();renderItemList();renderExport();
   }
 }
 
-// Internal section item re-ordering via drag (mouse-based)
-function initSectionDragSort() {
-  // handled via ondragstart/ondrop already; no extra init needed
+// ══════════════════════════════════════════════
+//  DRAG & DROP — Inherit reorder
+// ══════════════════════════════════════════════
+let inheritDrag=null;
+
+function onInheritDragStart(e,secId,idx){
+  inheritDrag={secId,fromIdx:idx}; dragData={src:'inherit'};
+  e.dataTransfer.effectAllowed='move';
+  e.currentTarget.classList.add('dragging-src'); e.stopPropagation();
+}
+function onInheritDragEnd(e){
+  e.currentTarget.classList.remove('dragging-src');
+  inheritDrag=null; dragData=null;
+}
+function onInheritDragOver(e,secId,idx){
+  if(!inheritDrag||inheritDrag.secId!==secId) return;
+  e.preventDefault(); e.stopPropagation();
+}
+function onInheritDrop(e,secId,toIdx){
+  e.preventDefault(); e.stopPropagation();
+  if(!inheritDrag||inheritDrag.secId!==secId) return;
+  const s=sections.find(s=>s.id===secId); if(!s) return;
+  const from=inheritDrag.fromIdx; if(from===toIdx) return;
+  const [moved]=s.parents.splice(from,1);
+  s.parents.splice(toIdx,0,moved);
+  inheritDrag=null; dragData=null;
+  renderSections(); renderExport();
 }
 
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  TOOLTIP
-// ══════════════════════════════════════════════════════════════════
-let tipTimer = null;
-function showTip(e, id) {
+// ══════════════════════════════════════════════
+let tipTimer=null;
+function showTip(e,id){
   clearTimeout(tipTimer);
-  tipTimer = setTimeout(() => {
-    const name = getItemName(id);
-    const desc = getItemDesc(id);
-    const el   = document.getElementById('tooltip');
-    document.getElementById('ttId').textContent   = id;
-    document.getElementById('ttName').textContent  = name || '(no name found)';
-    document.getElementById('ttDesc').textContent  = desc || '(no description)';
-    el.style.display = 'block';
-    positionTip(e);
-  }, 180);
+  tipTimer=setTimeout(()=>{
+    document.getElementById('ttId').textContent  =id;
+    document.getElementById('ttName').textContent=getItemName(id)||'(no name found)';
+    document.getElementById('ttDesc').textContent=getItemDesc(id)||'(no description)';
+    document.getElementById('tooltip').style.display='block'; posTip(e);
+  },180);
 }
-function hideTip() {
-  clearTimeout(tipTimer);
-  document.getElementById('tooltip').style.display = 'none';
+function hideTip(){clearTimeout(tipTimer);document.getElementById('tooltip').style.display='none';}
+function posTip(e){
+  const el=document.getElementById('tooltip'),W=window.innerWidth,H=window.innerHeight;
+  el.style.left=(e.clientX+14)+'px'; el.style.top=(e.clientY+14)+'px';
+  const r=el.getBoundingClientRect();
+  if(r.right >W-10) el.style.left=(e.clientX-r.width -14)+'px';
+  if(r.bottom>H-10) el.style.top =(e.clientY-r.height-14)+'px';
 }
-function positionTip(e) {
-  const el  = document.getElementById('tooltip');
-  const W   = window.innerWidth, H = window.innerHeight;
-  let x = e.clientX + 14, y = e.clientY + 14;
-  el.style.left = x + 'px'; el.style.top = y + 'px';
-  // Reposition if overflowing
-  const r = el.getBoundingClientRect();
-  if (r.right > W - 10)  el.style.left = (e.clientX - r.width - 14) + 'px';
-  if (r.bottom > H - 10) el.style.top  = (e.clientY - r.height - 14) + 'px';
-}
-document.addEventListener('mousemove', e => {
-  const el = document.getElementById('tooltip');
-  if (el.style.display === 'block') positionTip(e);
-});
+document.addEventListener('mousemove',e=>{if(document.getElementById('tooltip').style.display==='block')posTip(e);});
 
-// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  EXPORT
-// ══════════════════════════════════════════════════════════════════
-function renderExport() {
-  let out = '';
-  let prevWasBlank = false;
-
-  for (let i = 0; i < sections.length; i++) {
-    const s = sections[i];
-    const isMacro = s.isMacro || (s.parent && s.parent.includes(','));
-
-    // Section header line
-    const header = s.parent ? `[${s.name}]:${s.parent}` : `[${s.name}]`;
-    out += header + '\n';
-
-    if (isMacro) {
-      // Macro sections have no item body
-    } else {
-      for (const it of s.items) {
-        if (it.type === 'comment') {
-          out += `; ${it.val}\n`;
-        } else {
-          out += `${it.val}\n`;
-        }
-      }
-    }
-
-    out += '\n';
+// ══════════════════════════════════════════════
+function renderExport(){
+  let out='';
+  for(const s of sections){
+    const pStr=s.parents.join(',');
+    out+=(pStr?`[${s.name}]:${pStr}`:`[${s.name}]`)+'\n';
+    for(const it of s.items) out+=(it.type==='comment'?`; ${it.val}`:it.val)+'\n';
+    out+='\n';
   }
-
-  document.getElementById('exportArea').value = out || '; No sections defined yet.';
+  document.getElementById('exportArea').value=out||'; No sections defined yet.';
+}
+function copyExport(){navigator.clipboard.writeText(document.getElementById('exportArea').value).then(()=>notify('Copied!'));}
+function downloadExport(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([document.getElementById('exportArea').value],{type:'text/plain'}));
+  a.download='grounded_trade_categories.ltx'; a.click(); notify('Downloaded!');
 }
 
-function copyExport() {
-  navigator.clipboard.writeText(document.getElementById('exportArea').value)
-    .then(() => notify('Copied!'));
-}
-
-function downloadExport() {
-  const text = document.getElementById('exportArea').value;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
-  a.download = 'grounded_trade_categories.ltx';
-  a.click();
-  notify('Downloaded!');
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  FILE LIST RENDER
-// ══════════════════════════════════════════════════════════════════
-function renderLoadedFiles() {
-  const el = document.getElementById('loadedFilesList');
-  if (!loadedFiles.length) { el.innerHTML = ''; return; }
-  el.innerHTML = loadedFiles.map((f, i) => `
-    <div class="loaded-file">
-      <span class="lf-tag ${f.type}">${f.type.toUpperCase()}</span>
-      <span class="lf-name" title="${escHtml(f.name)}">${escHtml(f.name)}</span>
-      <span class="lf-rm" onclick="unloadFile(${i})">✕</span>
-    </div>
-  `).join('');
-}
-
-function unloadFile(idx) {
-  loadedFiles.splice(idx, 1);
-  renderLoadedFiles();
-  notify('File removed from list (data stays loaded until page reload)');
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  UTILITIES
-// ══════════════════════════════════════════════════════════════════
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 let notifTimer;
-function notify(msg) {
-  const el = document.getElementById('notif');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(notifTimer);
-  notifTimer = setTimeout(() => el.classList.remove('show'), 2200);
+function notify(msg){
+  const el=document.getElementById('notif'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(notifTimer); notifTimer=setTimeout(()=>el.classList.remove('show'),2200);
 }
+function showHelp(){document.getElementById('helpModal').classList.add('show');}
+function hideHelp(){document.getElementById('helpModal').classList.remove('show');}
+document.getElementById('helpModal').addEventListener('click',e=>{if(e.target===document.getElementById('helpModal'))hideHelp();});
+document.getElementById('newSecName').addEventListener('keydown',e=>{if(e.key==='Enter')addSection();});
 
-function showHelp() { document.getElementById('helpModal').classList.add('show'); }
-function hideHelp() { document.getElementById('helpModal').classList.remove('show'); }
-
-// ══════════════════════════════════════════════════════════════════
-//  RESIZE HANDLES
-// ══════════════════════════════════════════════════════════════════
-(function() {
-  const handle = document.getElementById('leftResizeHandle');
-  const grid   = document.getElementById('appGrid');
-  const MIN_W  = 180, MAX_W = 560;
-  let dragging = false, startX = 0, startW = 0;
-  handle.addEventListener('mousedown', e => {
-    dragging = true; startX = e.clientX;
-    startW = parseInt(getComputedStyle(grid).gridTemplateColumns.split(' ')[0]) || 320;
-    handle.classList.add('dragging');
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-    e.preventDefault();
+// ══════════════════════════════════════════════
+//  RESIZE
+// ══════════════════════════════════════════════
+(function(){
+  const handle=document.getElementById('leftResizeHandle'), grid=document.getElementById('appGrid');
+  const MIN=180,MAX=560; let drag=false,startX=0,startW=0;
+  handle.addEventListener('mousedown',e=>{
+    drag=true;startX=e.clientX;
+    startW=parseInt(getComputedStyle(grid).gridTemplateColumns.split(' ')[0])||320;
+    handle.classList.add('dragging');document.body.style.cursor='col-resize';document.body.style.userSelect='none';e.preventDefault();
   });
-  document.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    grid.style.setProperty('--left-w', Math.min(MAX_W, Math.max(MIN_W, startW + (e.clientX - startX))) + 'px');
-  });
-  document.addEventListener('mouseup', () => {
-    if (!dragging) return;
-    dragging = false; handle.classList.remove('dragging');
-    document.body.style.cursor = ''; document.body.style.userSelect = '';
-  });
+  document.addEventListener('mousemove',e=>{if(!drag)return;grid.style.setProperty('--left-w',Math.min(MAX,Math.max(MIN,startW+(e.clientX-startX)))+'px');});
+  document.addEventListener('mouseup',()=>{if(!drag)return;drag=false;handle.classList.remove('dragging');document.body.style.cursor='';document.body.style.userSelect='';});
 })();
-
-// Keyboard shortcut: Enter in new section name field
-document.getElementById('newSecName').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addSection();
-});
-
-// Close modal on overlay click
-document.getElementById('helpModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('helpModal')) hideHelp();
-});
 </script>
 </body>
 </html>
