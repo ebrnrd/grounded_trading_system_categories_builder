@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grounded — Trade Categories Organizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:        #0d0f0b;
+    --bg2:       #121510;
+    --bg3:       #181c14;
+    --bg4:       #1e241a;
+    --panel:     #141812;
+    --border:    #2a3424;
+    --border2:   #3a4832;
+    --accent:    #6daa3f;
+    --accent2:   #4e7d2c;
+    --accent-dim:#3a5a1f;
+    --text:      #c8d4b8;
+    --text2:     #8fa07a;
+    --text3:     #556645;
+    --danger:    #c04040;
+    --warn:      #c08830;
+    --info:      #4a8aaa;
+    --mono:      'Share Tech Mono', monospace;
+    --sans:      'Rajdhani', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 9px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  header::after {
+    content:''; position:absolute; bottom:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--accent-dim),transparent);
+  }
+  .logo { font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:3px; text-transform:uppercase; }
+  .logo span { color:var(--text3); }
+  .header-title { font-size:19px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+  .header-actions { margin-left:auto; display:flex; gap:8px; align-items:center; }
+
+  /* ── LAYOUT ── */
+  .app {
+    flex: 1;
+    display: grid;
+    grid-template-columns: var(--left-w,320px) 5px 1fr var(--right-w,300px);
+    overflow: hidden;
+  }
+  .resize-handle {
+    width:5px; background:transparent; cursor:col-resize;
+    flex-shrink:0; position:relative; z-index:10;
+    border-right:1px solid var(--border); transition:background .15s;
+  }
+  .resize-handle:hover,.resize-handle.dragging { background:var(--accent-dim); border-right-color:var(--accent); }
+
+  /* ── PANELS ── */
+  .panel { display:flex; flex-direction:column; overflow:hidden; border-right:1px solid var(--border); }
+  .panel:last-child { border-right:none; }
+  .panel-header {
+    background:var(--bg3); border-bottom:1px solid var(--border);
+    padding:7px 12px; display:flex; align-items:center; gap:8px; flex-shrink:0;
+  }
+  .panel-title { font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; flex:1; }
+  .panel-body { flex:1; overflow-y:auto; }
+  .panel-body::-webkit-scrollbar { width:4px; }
+  .panel-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    font-family:var(--sans); font-weight:600; font-size:13px; letter-spacing:.5px;
+    padding:5px 12px; border:1px solid var(--border2); border-radius:3px;
+    background:var(--bg4); color:var(--text); cursor:pointer; transition:all .15s; white-space:nowrap;
+  }
+  .btn:hover { background:var(--accent-dim); border-color:var(--accent); color:#fff; }
+  .btn.primary { background:var(--accent-dim); border-color:var(--accent); color:#fff; }
+  .btn.primary:hover { background:var(--accent2); }
+  .btn.danger { border-color:var(--danger); color:var(--danger); }
+  .btn.danger:hover { background:#3a1010; }
+  .btn.small { font-size:11px; padding:3px 8px; }
+  .btn.xs { font-size:10px; padding:2px 6px; }
+
+  input[type=text],select,textarea {
+    font-family:var(--mono); font-size:12px; background:var(--bg);
+    border:1px solid var(--border2); border-radius:3px; color:var(--text);
+    padding:5px 8px; outline:none; transition:border-color .15s;
+  }
+  input[type=text]:focus,select:focus,textarea:focus { border-color:var(--accent); }
+  select option { background:var(--bg3); }
+
+  /* ── LEFT PANEL — FILE LOADER ── */
+  .file-zone {
+    border: 1px dashed var(--border2); border-radius:4px; margin:10px;
+    padding:14px; text-align:center; cursor:pointer; transition:all .15s;
+    font-size:12px; color:var(--text3);
+  }
+  .file-zone:hover { border-color:var(--accent); color:var(--text2); background:var(--bg3); }
+  .file-zone input { display:none; }
+
+  .loaded-files { padding:0 10px 8px; }
+  .loaded-file {
+    display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:3px;
+    font-family:var(--mono); font-size:10px; color:var(--text2);
+    border:1px solid var(--border); margin-bottom:3px; background:var(--bg3);
+  }
+  .loaded-file .lf-tag {
+    font-size:9px; padding:1px 5px; border-radius:2px; font-weight:700; letter-spacing:.5px;
+  }
+  .lf-tag.ltx { background:#2a3a1a; color:var(--accent); }
+  .lf-tag.xml { background:#1a2a3a; color:var(--info); }
+  .lf-tag.cat { background:#3a2a1a; color:var(--warn); }
+  .loaded-file .lf-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .loaded-file .lf-rm { color:var(--text3); cursor:pointer; flex-shrink:0; }
+  .loaded-file .lf-rm:hover { color:var(--danger); }
+
+  .stats-bar {
+    padding:6px 12px; background:var(--bg3); border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:10px; color:var(--text3); display:flex; gap:12px;
+  }
+  .stats-bar span { color:var(--text2); }
+
+  /* ── SEARCH ── */
+  .search-wrap { padding:8px; display:flex; gap:6px; align-items:center; }
+  .search-wrap input { flex:1; }
+
+  /* ── ITEM LIST (left) ── */
+  .item-list-wrap { padding:4px 0; }
+  .item-entry {
+    padding:4px 10px 4px 14px; display:flex; align-items:center; gap:6px;
+    cursor:grab; border-bottom:1px solid #181e14; transition:background .1s;
+    user-select:none;
+  }
+  .item-entry:hover { background:var(--bg4); }
+  .item-entry.dragging-src { opacity:.4; }
+  .item-entry.in-section { border-left:2px solid var(--accent-dim); }
+  .ie-id {
+    font-family:var(--mono); font-size:11px; color:var(--text2); flex:1;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;
+  }
+  .ie-name {
+    font-family:var(--sans); font-size:11px; color:var(--text3); font-style:italic;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    max-width:130px; flex-shrink:0;
+  }
+  .item-entry:hover .ie-name { color:var(--text2); }
+  .ie-section-badge {
+    font-size:9px; font-family:var(--mono); color:var(--text3);
+    background:var(--bg3); border:1px solid var(--border); border-radius:2px;
+    padding:0 4px; flex-shrink:0;
+  }
+
+  /* ── CENTER PANEL — SECTIONS ── */
+  .sections-toolbar {
+    padding:8px; border-bottom:1px solid var(--border); display:flex; gap:6px; align-items:center; flex-shrink:0;
+  }
+  .sections-toolbar input { flex:1; }
+
+  .section-card {
+    border:1px solid var(--border); border-radius:3px; margin:6px; overflow:visible;
+    background:var(--bg3); transition:border-color .15s;
+  }
+  .section-card.drag-over { border-color:var(--accent); background:#1a2014; }
+  .section-card.selected { border-color:var(--accent-dim); }
+
+  .section-header {
+    padding:7px 10px; display:flex; align-items:center; gap:8px;
+    background:var(--bg4); border-bottom:1px solid var(--border);
+    cursor:pointer; user-select:none;
+  }
+  .section-header:hover { background:#222c1a; }
+  .section-card.collapsed .section-header { border-bottom:none; }
+  .section-card.collapsed .section-body { display:none; }
+
+  .sec-chevron { font-size:9px; color:var(--text3); transition:transform .15s; }
+  .section-card.collapsed .sec-chevron { transform:rotate(-90deg); }
+
+  .sec-name { font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:700; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .sec-parent { font-family:var(--mono); font-size:10px; color:var(--info); }
+  .sec-count { font-family:var(--mono); font-size:10px; color:var(--text3); }
+  .sec-actions { display:flex; gap:4px; }
+
+  .section-body { padding:4px 0; min-height:32px; }
+  .section-body.drop-target { background:#1a2014; }
+
+  .sec-item {
+    padding:3px 10px 3px 16px; display:flex; align-items:center; gap:6px;
+    font-family:var(--mono); font-size:11px; color:var(--text2);
+    cursor:grab; border-bottom:1px solid #1a1f16; transition:background .1s;
+    user-select:none;
+  }
+  .sec-item:hover { background:var(--bg4); color:var(--text); }
+  .sec-item.dragging-src { opacity:.35; }
+  .sec-item .si-id { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .sec-item .si-name { font-family:var(--sans); font-style:italic; font-size:11px; color:var(--text3); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sec-item:hover .si-name { color:var(--text2); }
+  .sec-item .si-rm { color:var(--text3); cursor:pointer; flex-shrink:0; opacity:0; }
+  .sec-item:hover .si-rm { opacity:1; }
+  .sec-item .si-rm:hover { color:var(--danger); }
+  .sec-item .drag-handle { color:var(--text3); font-size:12px; cursor:grab; }
+
+  .drop-placeholder {
+    height:28px; border:1px dashed var(--accent-dim); border-radius:2px; margin:2px 10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-family:var(--mono); color:var(--accent-dim);
+  }
+
+  .section-footer {
+    border-top:1px solid var(--border); padding:6px 10px;
+    display:flex; gap:6px; align-items:center;
+  }
+  .section-footer input { flex:1; font-size:11px; }
+
+  /* ── COMMENT in section ── */
+  .sec-comment {
+    padding:3px 10px 3px 16px; font-family:var(--mono); font-size:10px;
+    color:var(--text3); display:flex; gap:6px; align-items:center;
+    border-bottom:1px solid #1a1f16; cursor:grab; user-select:none;
+  }
+  .sec-comment .si-rm { color:var(--text3); cursor:pointer; opacity:0; }
+  .sec-comment:hover .si-rm { opacity:1; }
+  .sec-comment .si-rm:hover { color:var(--danger); }
+
+  /* ── RIGHT PANEL — EXPORT ── */
+  .export-wrap { padding:8px; display:flex; flex-direction:column; gap:8px; height:100%; }
+  .export-wrap textarea {
+    flex:1; resize:none; font-size:11px; line-height:1.5; background:var(--bg);
+    white-space:pre; overflow-wrap:normal; overflow-x:auto;
+  }
+  .export-actions { display:flex; gap:6px; }
+
+  /* ── TOOLTIP ── */
+  #tooltip {
+    position:fixed; z-index:9999; pointer-events:none;
+    background:var(--bg2); border:1px solid var(--border2); border-radius:4px;
+    padding:8px 12px; max-width:340px; font-size:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,.5); display:none;
+  }
+  #tooltip .tt-id { font-family:var(--mono); color:var(--accent); font-size:11px; margin-bottom:4px; }
+  #tooltip .tt-name { font-weight:700; font-size:14px; color:var(--text); margin-bottom:4px; }
+  #tooltip .tt-desc { color:var(--text2); font-size:11px; line-height:1.5; max-height:120px; overflow:hidden; }
+
+  /* ── NOTIF ── */
+  #notif {
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(60px);
+    background:var(--accent-dim); border:1px solid var(--accent); border-radius:4px;
+    padding:8px 18px; font-family:var(--mono); font-size:12px; letter-spacing:1px;
+    z-index:9999; transition:transform .25s; pointer-events:none;
+  }
+  #notif.show { transform:translateX(-50%) translateY(0); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:9998;
+    display:none; align-items:center; justify-content:center;
+  }
+  .modal-overlay.show { display:flex; }
+  .modal {
+    background:var(--bg2); border:1px solid var(--border2); border-radius:5px;
+    padding:20px; max-width:480px; width:90%; max-height:80vh; overflow-y:auto;
+  }
+  .modal h3 { font-size:16px; font-weight:700; margin-bottom:12px; color:var(--accent); text-transform:uppercase; letter-spacing:1px; }
+  .modal p { font-size:13px; color:var(--text2); margin-bottom:10px; line-height:1.5; }
+  .modal-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+  .modal-row label { font-size:12px; color:var(--text3); min-width:80px; }
+  .modal-row input, .modal-row select { flex:1; }
+  .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
+
+  .cat-filter { padding:4px 10px; display:flex; gap:6px; flex-wrap:wrap; }
+  .cf-chip {
+    font-family:var(--mono); font-size:9px; padding:2px 7px; border-radius:12px;
+    border:1px solid var(--border2); cursor:pointer; color:var(--text3); transition:all .12s;
+  }
+  .cf-chip:hover,.cf-chip.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+
+  .empty-note {
+    text-align:center; padding:20px; font-family:var(--mono); font-size:11px; color:var(--text3);
+  }
+
+  /* ── MACRO CATEGORIES special rendering ── */
+  .sec-macro-badge {
+    font-size:9px; font-family:var(--mono); padding:1px 5px; border-radius:2px;
+    background:#1a2a3a; color:var(--info); border:1px solid #2a3a4a; flex-shrink:0;
+  }
+
+  .section-card.macro { border-color:#2a3a4a; }
+  .section-card.macro .section-header { background:#111820; }
+  .section-card.macro .sec-name { color:var(--info); }
+
+  .sec-inheritance {
+    font-family:var(--mono); font-size:10px; color:var(--info); padding:4px 10px;
+    border-bottom:1px solid var(--border); background:#0e1218;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GROUNDED <span>// TRADE</span></div>
+  <div class="header-title">Categories Organizer</div>
+  <div class="header-actions">
+    <button class="btn small" onclick="showHelp()">? Help</button>
+    <button class="btn small primary" onclick="renderExport()">⟳ Refresh Export</button>
+  </div>
+</header>
+
+<div class="app" id="appGrid">
+
+  <!-- ═══ LEFT: Files + Item Browser ═══ -->
+  <div class="panel" id="leftPanel">
+    <div class="panel-header">
+      <span class="panel-title">Files &amp; Items</span>
+    </div>
+
+    <!-- File drop zones -->
+    <div style="flex-shrink:0; border-bottom:1px solid var(--border);">
+      <div class="file-zone" onclick="document.getElementById('filePickerCat').click()" title="Load grounded_trade_categories.ltx">
+        <input type="file" id="filePickerCat" accept=".ltx" onchange="loadCatFile(this)">
+        📂 Load <strong>trade_categories.ltx</strong>
+      </div>
+      <div class="file-zone" onclick="document.getElementById('filePickerLtx').click()" title="Load any number of .ltx config files">
+        <input type="file" id="filePickerLtx" accept=".ltx" multiple onchange="loadLtxFiles(this)">
+        📂 Load <strong>.ltx config files</strong> (multiple)
+      </div>
+      <div class="file-zone" onclick="document.getElementById('filePickerXml').click()" title="Load any number of .xml string files">
+        <input type="file" id="filePickerXml" accept=".xml" multiple onchange="loadXmlFiles(this)">
+        📂 Load <strong>.xml string files</strong> (multiple)
+      </div>
+      <div class="loaded-files" id="loadedFilesList"></div>
+    </div>
+
+    <div class="stats-bar" id="statsBar">
+      <span>Items: <span id="statItems">0</span></span>
+      <span>Strings: <span id="statStrings">0</span></span>
+      <span>Sections: <span id="statSections">0</span></span>
+    </div>
+
+    <!-- Item search -->
+    <div class="search-wrap" style="flex-shrink:0; border-bottom:1px solid var(--border);">
+      <input type="text" id="itemSearch" placeholder="Search items…" oninput="renderItemList()">
+      <select id="filterMode" onchange="renderItemList()" style="font-size:11px; padding:4px 6px;">
+        <option value="all">All</option>
+        <option value="unplaced">Unplaced</option>
+        <option value="placed">Placed</option>
+      </select>
+    </div>
+    <div class="cat-filter" id="catFilter"></div>
+    <div class="panel-body" id="itemListPanel">
+      <div class="empty-note">Load files to populate item list</div>
+    </div>
+  </div>
+
+  <div class="resize-handle" id="leftResizeHandle"></div>
+
+  <!-- ═══ CENTER: Sections Editor ═══ -->
+  <div class="panel" id="centerPanel">
+    <div class="panel-header">
+      <span class="panel-title">Sections</span>
+      <button class="btn small" onclick="collapseAll()">Collapse All</button>
+      <button class="btn small" onclick="expandAll()">Expand All</button>
+    </div>
+    <div class="sections-toolbar">
+      <input type="text" id="newSecName" placeholder="New section name…" onkeydown="if(e.key==='Enter')addSection()">
+      <input type="text" id="newSecParent" placeholder="Inherits… (optional)" style="width:160px" list="sectionNamesList">
+      <datalist id="sectionNamesList"></datalist>
+      <button class="btn small primary" onclick="addSection()">+ Section</button>
+    </div>
+    <div style="flex-shrink:0; padding:4px 8px 6px; border-bottom:1px solid var(--border); display:flex; gap:6px; align-items:center;">
+      <input type="text" id="secSearch" placeholder="Filter sections…" style="flex:1" oninput="renderSections()">
+    </div>
+    <div class="panel-body" id="sectionsPanel">
+      <div class="empty-note">Load trade_categories.ltx to begin</div>
+    </div>
+  </div>
+
+  <!-- ═══ RIGHT: Export ═══ -->
+  <div class="panel" id="rightPanel">
+    <div class="panel-header">
+      <span class="panel-title">Export</span>
+    </div>
+    <div class="export-wrap">
+      <textarea id="exportArea" readonly placeholder="; Export will appear here…&#10;; Load files and build sections first."></textarea>
+      <div class="export-actions">
+        <button class="btn small" onclick="copyExport()">⎘ Copy</button>
+        <button class="btn small primary" onclick="downloadExport()">↓ Download .ltx</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip">
+  <div class="tt-id" id="ttId"></div>
+  <div class="tt-name" id="ttName"></div>
+  <div class="tt-desc" id="ttDesc"></div>
+</div>
+
+<!-- Notif -->
+<div id="notif"></div>
+
+<!-- Help modal -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal">
+    <h3>How to use</h3>
+    <p><strong>1. Load files</strong><br>
+      Start by loading your <code>grounded_trade_categories.ltx</code>. Then load as many <code>.ltx</code> config files (like <code>w_akm.ltx</code>, <code>items_medical.ltx</code>) and <code>.xml</code> string files (like <code>st_items_weapons.xml</code>) as you want. The tool cross-references them automatically to show real item names and descriptions.</p>
+    <p><strong>2. Browse items</strong><br>
+      The left panel shows all known item IDs. Hover any item for its full name and description. Filter by "Unplaced" to find items not yet in any section. Use the category chips to filter by prefix group.</p>
+    <p><strong>3. Edit sections</strong><br>
+      The center panel shows all sections. Drag items from the left panel into a section. Drag items between sections. Use the <code>+ Item</code> field in each section footer to add manually. Click ✕ to remove. Sections support inheritance (the <code>[name]:parent</code> syntax).</p>
+    <p><strong>4. Create sections</strong><br>
+      Type a name and optional parent in the toolbar at the top of the center panel, then click <code>+ Section</code>. Parent names are autocompleted from existing sections.</p>
+    <p><strong>5. Export</strong><br>
+      Click <em>Refresh Export</em> in the header to regenerate the <code>.ltx</code> output. Download or copy it.</p>
+    <div class="modal-actions">
+      <button class="btn primary" onclick="hideHelp()">Got it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════
+let itemDB      = {};   // id → { inv_name_key, description_key }
+let stringDB    = {};   // string_id → text
+let sections    = [];   // [{id, name, parent, items:[{type:'item'|'comment', val}], collapsed, isMacro}]
+let loadedFiles = [];   // [{name, type:'ltx'|'xml'|'cat'}]
+let nextSecId   = 1;
+let filterCat   = '';   // active prefix filter
+
+// ══════════════════════════════════════════════════════════════════
+//  FILE LOADING
+// ══════════════════════════════════════════════════════════════════
+function loadCatFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    parseCatFile(e.target.result);
+    loadedFiles = loadedFiles.filter(f => f.type !== 'cat');
+    loadedFiles.unshift({ name: file.name, type: 'cat' });
+    renderLoadedFiles();
+    renderSections();
+    renderItemList();
+    renderExport();
+    updateStats();
+    notify('Loaded: ' + file.name);
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function loadLtxFiles(input) {
+  const files = Array.from(input.files);
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      parseLtxConfig(e.target.result);
+      loadedFiles = loadedFiles.filter(f => f.name !== file.name);
+      loadedFiles.push({ name: file.name, type: 'ltx' });
+      done++;
+      if (done === files.length) {
+        renderLoadedFiles(); renderItemList(); renderExport(); updateStats();
+        notify(`Loaded ${files.length} .ltx file(s)`);
+      }
+    };
+    reader.readAsText(file);
+  });
+  input.value = '';
+}
+
+function loadXmlFiles(input) {
+  const files = Array.from(input.files);
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      parseXmlStrings(e.target.result);
+      loadedFiles = loadedFiles.filter(f => f.name !== file.name);
+      loadedFiles.push({ name: file.name, type: 'xml' });
+      done++;
+      if (done === files.length) {
+        renderLoadedFiles(); renderItemList(); renderSections(); updateStats();
+        notify(`Loaded ${files.length} .xml file(s)`);
+      }
+    };
+    reader.readAsText(file, 'windows-1251');
+  });
+  input.value = '';
+}
+
+// ── Parse trade_categories.ltx ──
+function parseCatFile(text) {
+  sections = [];
+  nextSecId = 1;
+  const lines = text.split('\n');
+  let curSec = null;
+
+  for (let rawLine of lines) {
+    const line = rawLine.trimEnd();
+    const trimmed = line.trim();
+
+    // Section header: [name] or [name]:parent,parent2,...
+    const headerMatch = trimmed.match(/^\[([^\]]+)\](?::(.+))?/);
+    if (headerMatch) {
+      const name    = headerMatch[1].trim();
+      const parent  = headerMatch[2] ? headerMatch[2].trim() : '';
+      const isMacro = !!(parent && parent.includes(','));
+      curSec = { id: nextSecId++, name, parent, items: [], collapsed: false, isMacro };
+      sections.push(curSec);
+      continue;
+    }
+
+    if (!curSec) continue;
+
+    // Comment line
+    if (trimmed.startsWith(';')) {
+      const commentText = trimmed.slice(1).trim();
+      if (commentText) {
+        curSec.items.push({ type: 'comment', val: commentText });
+      }
+      continue;
+    }
+
+    // Empty line — skip
+    if (!trimmed) continue;
+
+    // Item line: id optionally followed by ;comment
+    const itemMatch = trimmed.match(/^([A-Za-z0-9_.\-]+)(?:\s*;.*)?$/);
+    if (itemMatch) {
+      const id = itemMatch[1].trim();
+      curSec.items.push({ type: 'item', val: id });
+      // Register in itemDB if not yet known
+      if (!itemDB[id]) itemDB[id] = { inv_name_key: '', description_key: '' };
+    }
+  }
+  updateSectionDatalist();
+}
+
+// ── Parse .ltx config files for inv_name / description ──
+function parseLtxConfig(text) {
+  const lines = text.split('\n');
+  let curId = null;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+
+    // Section header
+    const headerMatch = line.match(/^\[([A-Za-z0-9_.\-]+)\]/);
+    if (headerMatch) {
+      curId = headerMatch[1];
+      if (!itemDB[curId]) itemDB[curId] = { inv_name_key: '', description_key: '' };
+      continue;
+    }
+
+    if (!curId) continue;
+
+    // inv_name
+    const invNameMatch = line.match(/^inv_name\s*=\s*([A-Za-z0-9_.\-]+)/);
+    if (invNameMatch) {
+      itemDB[curId].inv_name_key = invNameMatch[1];
+      continue;
+    }
+
+    // description
+    const descMatch = line.match(/^description\s*=\s*([A-Za-z0-9_.\-]+)/);
+    if (descMatch) {
+      itemDB[curId].description_key = descMatch[1];
+    }
+  }
+}
+
+// ── Parse .xml string files ──
+function parseXmlStrings(text) {
+  // Use regex for speed (no DOM parse needed)
+  const re = /<string\s+id="([^"]+)"[^>]*>\s*<text>([\s\S]*?)<\/text>/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const id  = m[1];
+    // Clean up STALKER xml formatting codes and whitespace
+    const raw = m[2]
+      .replace(/\\n/g, '\n')
+      .replace(/%c\[[^\]]+\]/g, '')
+      .replace(/\x95/g, '•')
+      .replace(/\n\s*\n/g, '\n')
+      .trim();
+    stringDB[id] = raw;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  LOOKUPS
+// ══════════════════════════════════════════════════════════════════
+function getItemName(id) {
+  const entry = itemDB[id];
+  if (!entry) return '';
+  if (entry.inv_name_key && stringDB[entry.inv_name_key]) return stringDB[entry.inv_name_key];
+  if (entry.inv_name_key) return entry.inv_name_key; // fallback: show key
+  return '';
+}
+
+function getItemDesc(id) {
+  const entry = itemDB[id];
+  if (!entry) return '';
+  if (entry.description_key && stringDB[entry.description_key]) return stringDB[entry.description_key];
+  return '';
+}
+
+function getItemSection(id) {
+  for (const s of sections) {
+    if (s.items.some(it => it.type === 'item' && it.val === id)) return s.name;
+  }
+  return null;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  ITEM BROWSER (LEFT PANEL)
+// ══════════════════════════════════════════════════════════════════
+function renderCatFilter() {
+  const prefixes = new Set();
+  for (const id of Object.keys(itemDB)) {
+    const p = id.split('_')[0];
+    if (p) prefixes.add(p);
+  }
+  const sorted = [...prefixes].sort();
+  const el = document.getElementById('catFilter');
+  el.innerHTML = `<span class="cf-chip ${filterCat===''?'active':''}" onclick="setFilter('')">All</span>` +
+    sorted.map(p => `<span class="cf-chip ${filterCat===p?'active':''}" onclick="setFilter('${p}')">${p}</span>`).join('');
+}
+
+function setFilter(p) {
+  filterCat = p;
+  renderCatFilter();
+  renderItemList();
+}
+
+function renderItemList() {
+  const query   = (document.getElementById('itemSearch').value || '').toLowerCase();
+  const mode    = document.getElementById('filterMode').value;
+  const el      = document.getElementById('itemListPanel');
+  const allIds  = Object.keys(itemDB).sort();
+
+  const ids = allIds.filter(id => {
+    if (filterCat && !id.startsWith(filterCat + '_') && id !== filterCat) return false;
+    if (query && !id.toLowerCase().includes(query)) {
+      const name = getItemName(id).toLowerCase();
+      if (!name.includes(query)) return false;
+    }
+    const sec = getItemSection(id);
+    if (mode === 'unplaced' && sec) return false;
+    if (mode === 'placed'   && !sec) return false;
+    return true;
+  });
+
+  if (!ids.length) {
+    el.innerHTML = '<div class="empty-note">No items match</div>';
+    return;
+  }
+
+  let html = '<div class="item-list-wrap">';
+  for (const id of ids) {
+    const name = getItemName(id);
+    const sec  = getItemSection(id);
+    const esc  = escHtml;
+    html += `<div class="item-entry${sec?' in-section':''}" draggable="true"
+      data-id="${esc(id)}"
+      onmouseenter="showTip(event,'${esc(id)}')" onmouseleave="hideTip()"
+      ondragstart="onItemDragStart(event,'${esc(id)}','browser')"
+      ondragend="onDragEnd(event)">
+      <span class="ie-id">${esc(id)}</span>
+      ${name ? `<span class="ie-name" title="${esc(name)}">${esc(name)}</span>` : ''}
+      ${sec ? `<span class="ie-section-badge">${esc(sec)}</span>` : ''}
+    </div>`;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+  renderCatFilter();
+}
+
+function updateStats() {
+  document.getElementById('statItems').textContent   = Object.keys(itemDB).length;
+  document.getElementById('statStrings').textContent = Object.keys(stringDB).length;
+  document.getElementById('statSections').textContent = sections.length;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  SECTIONS EDITOR (CENTER PANEL)
+// ══════════════════════════════════════════════════════════════════
+function updateSectionDatalist() {
+  document.getElementById('sectionNamesList').innerHTML =
+    sections.map(s => `<option value="${escHtml(s.name)}">`).join('');
+}
+
+function addSection() {
+  const nameEl   = document.getElementById('newSecName');
+  const parentEl = document.getElementById('newSecParent');
+  const name     = nameEl.value.trim();
+  if (!name) { notify('Enter a section name'); return; }
+  if (sections.find(s => s.name === name)) { notify('Section already exists'); return; }
+  sections.push({ id: nextSecId++, name, parent: parentEl.value.trim(), items: [], collapsed: false, isMacro: false });
+  nameEl.value = ''; parentEl.value = '';
+  updateSectionDatalist();
+  renderSections();
+  renderExport();
+  updateStats();
+  notify('Section added: ' + name);
+}
+
+function removeSection(id) {
+  sections = sections.filter(s => s.id !== id);
+  updateSectionDatalist();
+  renderSections();
+  renderItemList();
+  renderExport();
+  updateStats();
+}
+
+function toggleSection(id) {
+  const s = sections.find(s => s.id === id);
+  if (s) { s.collapsed = !s.collapsed; renderSections(); }
+}
+
+function collapseAll() { sections.forEach(s => s.collapsed = true); renderSections(); }
+function expandAll()   { sections.forEach(s => s.collapsed = false); renderSections(); }
+
+function removeItemFromSection(secId, idx) {
+  const s = sections.find(s => s.id === secId);
+  if (s) { s.items.splice(idx, 1); renderSections(); renderItemList(); renderExport(); }
+}
+
+function addItemToSection(secId) {
+  const input = document.getElementById('secAddItem_' + secId);
+  if (!input) return;
+  const id = input.value.trim();
+  if (!id) return;
+  const s = sections.find(s => s.id === secId);
+  if (!s) return;
+  if (s.items.some(it => it.type === 'item' && it.val === id)) { notify('Already in section'); return; }
+  s.items.push({ type: 'item', val: id });
+  if (!itemDB[id]) itemDB[id] = { inv_name_key: '', description_key: '' };
+  input.value = '';
+  renderSections(); renderItemList(); renderExport(); updateStats();
+}
+
+function addCommentToSection(secId) {
+  const input = document.getElementById('secAddComment_' + secId);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  const s = sections.find(s => s.id === secId);
+  if (!s) return;
+  s.items.push({ type: 'comment', val: text });
+  input.value = '';
+  renderSections(); renderExport();
+}
+
+function editSectionName(id) {
+  const s = sections.find(s => s.id === id);
+  if (!s) return;
+  const n = prompt('Rename section:', s.name);
+  if (n && n.trim() && n.trim() !== s.name) {
+    // update parent refs
+    const old = s.name;
+    s.name = n.trim();
+    sections.forEach(sec => {
+      if (sec.parent) {
+        const parts = sec.parent.split(',').map(p => p.trim());
+        sec.parent = parts.map(p => p === old ? s.name : p).join(',');
+      }
+    });
+    updateSectionDatalist();
+    renderSections(); renderExport();
+  }
+}
+
+function editSectionParent(id) {
+  const s = sections.find(s => s.id === id);
+  if (!s) return;
+  const n = prompt('Inheritance (comma-separated section names, empty for none):', s.parent);
+  if (n !== null) { s.parent = n.trim(); renderSections(); renderExport(); }
+}
+
+function renderSections() {
+  const el    = document.getElementById('sectionsPanel');
+  const query = (document.getElementById('secSearch').value || '').toLowerCase();
+  const vis   = sections.filter(s => !query || s.name.toLowerCase().includes(query));
+
+  if (!vis.length) {
+    el.innerHTML = '<div class="empty-note">No sections. Load a file or create one.</div>';
+    updateSectionDatalist();
+    return;
+  }
+
+  let html = '';
+  for (const s of vis) {
+    const itemCount = s.items.filter(it => it.type === 'item').length;
+    const isMacro   = s.isMacro || (s.parent && s.parent.includes(','));
+    const parentStr = s.parent ? `:${s.parent}` : '';
+
+    html += `<div class="section-card${s.collapsed?' collapsed':''}${isMacro?' macro':''}"
+      id="sec_${s.id}"
+      ondragover="onSectionDragOver(event,${s.id})"
+      ondragleave="onSectionDragLeave(event,${s.id})"
+      ondrop="onDropInSection(event,${s.id})">`;
+
+    // Header
+    html += `<div class="section-header" onclick="toggleSection(${s.id})">
+      <span class="sec-chevron">▶</span>
+      <span class="sec-name">[${escHtml(s.name)}]</span>
+      ${isMacro ? '<span class="sec-macro-badge">MACRO</span>' : ''}
+      ${s.parent ? `<span class="sec-parent" title="Inherits: ${escHtml(s.parent)}" onclick="event.stopPropagation();editSectionParent(${s.id})">:${escHtml(s.parent.length>24?s.parent.slice(0,22)+'…':s.parent)}</span>` : ''}
+      <span class="sec-count">${itemCount} items</span>
+      <div class="sec-actions" onclick="event.stopPropagation()">
+        <button class="btn xs" title="Rename" onclick="editSectionName(${s.id})">✎</button>
+        <button class="btn xs" title="Edit inheritance" onclick="editSectionParent(${s.id})">⇒</button>
+        <button class="btn xs danger" title="Delete section" onclick="removeSection(${s.id})">✕</button>
+      </div>
+    </div>`;
+
+    // Inheritance display (if any)
+    if (s.parent && !s.collapsed) {
+      html += `<div class="sec-inheritance">inherits → ${escHtml(s.parent)}</div>`;
+    }
+
+    // Body
+    html += `<div class="section-body" id="secBody_${s.id}">`;
+    if (s.items.length === 0) {
+      html += `<div class="drop-placeholder">Drop items here</div>`;
+    }
+    for (let idx = 0; idx < s.items.length; idx++) {
+      const it = s.items[idx];
+      if (it.type === 'comment') {
+        html += `<div class="sec-comment" draggable="true"
+          ondragstart="onSecItemDragStart(event,${s.id},${idx})"
+          ondragend="onDragEnd(event)">
+          <span class="drag-handle">⋮⋮</span>
+          <span style="flex:1; color:var(--text3)">; ${escHtml(it.val)}</span>
+          <span class="si-rm" onclick="removeItemFromSection(${s.id},${idx})">✕</span>
+        </div>`;
+      } else {
+        const name = getItemName(it.val);
+        html += `<div class="sec-item" draggable="true"
+          data-id="${escHtml(it.val)}"
+          ondragstart="onSecItemDragStart(event,${s.id},${idx})"
+          ondragend="onDragEnd(event)"
+          onmouseenter="showTip(event,'${escHtml(it.val)}')" onmouseleave="hideTip()">
+          <span class="drag-handle">⋮⋮</span>
+          <span class="si-id">${escHtml(it.val)}</span>
+          ${name ? `<span class="si-name" title="${escHtml(name)}">${escHtml(name)}</span>` : ''}
+          <span class="si-rm" onclick="removeItemFromSection(${s.id},${idx})">✕</span>
+        </div>`;
+      }
+    }
+    html += `</div>`; // section-body
+
+    // Footer
+    if (!s.collapsed) {
+      html += `<div class="section-footer">
+        <input type="text" id="secAddItem_${s.id}" placeholder="Add item ID…" list="knownItemsList"
+          onkeydown="if(event.key==='Enter')addItemToSection(${s.id})">
+        <button class="btn xs primary" onclick="addItemToSection(${s.id})">+ Item</button>
+        <input type="text" id="secAddComment_${s.id}" placeholder="; comment…"
+          onkeydown="if(event.key==='Enter')addCommentToSection(${s.id})" style="width:110px">
+        <button class="btn xs" onclick="addCommentToSection(${s.id})">+ ;c</button>
+      </div>`;
+    }
+
+    html += `</div>`; // section-card
+  }
+
+  // Datalist for item autocomplete
+  html += `<datalist id="knownItemsList">${Object.keys(itemDB).sort().map(id=>`<option value="${escHtml(id)}">`).join('')}</datalist>`;
+
+  el.innerHTML = html;
+  initSectionDragSort();
+  updateSectionDatalist();
+  updateStats();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  DRAG AND DROP
+// ══════════════════════════════════════════════════════════════════
+let dragData = null; // {src:'browser'|'section', itemId, secId, idx}
+
+function onItemDragStart(e, id, src) {
+  dragData = { src, itemId: id, secId: null, idx: null };
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging-src');
+}
+
+function onSecItemDragStart(e, secId, idx) {
+  const s  = sections.find(s => s.id === secId);
+  const it = s ? s.items[idx] : null;
+  dragData = { src: 'section', itemId: it ? it.val : null, itemObj: it, secId, idx };
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging-src');
+  e.stopPropagation();
+}
+
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging-src');
+  document.querySelectorAll('.section-card').forEach(el => el.classList.remove('drag-over'));
+  dragData = null;
+}
+
+function onSectionDragOver(e, secId) {
+  if (!dragData) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.getElementById('sec_' + secId)?.classList.add('drag-over');
+}
+
+function onSectionDragLeave(e, secId) {
+  // Only remove if leaving the card itself
+  const related = e.relatedTarget;
+  const card = document.getElementById('sec_' + secId);
+  if (card && !card.contains(related)) card.classList.remove('drag-over');
+}
+
+function onDropInSection(e, targetSecId) {
+  e.preventDefault();
+  document.getElementById('sec_' + targetSecId)?.classList.remove('drag-over');
+  if (!dragData) return;
+
+  const targetSec = sections.find(s => s.id === targetSecId);
+  if (!targetSec) return;
+
+  if (dragData.src === 'browser') {
+    // Add from browser — check for dupe
+    if (targetSec.items.some(it => it.type === 'item' && it.val === dragData.itemId)) {
+      notify('Already in section'); return;
+    }
+    targetSec.items.push({ type: 'item', val: dragData.itemId });
+    renderSections(); renderItemList(); renderExport();
+
+  } else if (dragData.src === 'section') {
+    const sourceSec = sections.find(s => s.id === dragData.secId);
+    if (!sourceSec) return;
+    const [moved] = sourceSec.items.splice(dragData.idx, 1);
+    if (targetSecId === dragData.secId) {
+      // Re-insert at end in same section
+      sourceSec.items.push(moved);
+    } else {
+      // Check dupe
+      if (moved.type === 'item' && targetSec.items.some(it => it.type === 'item' && it.val === moved.val)) {
+        sourceSec.items.splice(dragData.idx, 0, moved); // undo
+        notify('Already in target section'); return;
+      }
+      targetSec.items.push(moved);
+    }
+    renderSections(); renderItemList(); renderExport();
+  }
+}
+
+// Internal section item re-ordering via drag (mouse-based)
+function initSectionDragSort() {
+  // handled via ondragstart/ondrop already; no extra init needed
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  TOOLTIP
+// ══════════════════════════════════════════════════════════════════
+let tipTimer = null;
+function showTip(e, id) {
+  clearTimeout(tipTimer);
+  tipTimer = setTimeout(() => {
+    const name = getItemName(id);
+    const desc = getItemDesc(id);
+    const el   = document.getElementById('tooltip');
+    document.getElementById('ttId').textContent   = id;
+    document.getElementById('ttName').textContent  = name || '(no name found)';
+    document.getElementById('ttDesc').textContent  = desc || '(no description)';
+    el.style.display = 'block';
+    positionTip(e);
+  }, 180);
+}
+function hideTip() {
+  clearTimeout(tipTimer);
+  document.getElementById('tooltip').style.display = 'none';
+}
+function positionTip(e) {
+  const el  = document.getElementById('tooltip');
+  const W   = window.innerWidth, H = window.innerHeight;
+  let x = e.clientX + 14, y = e.clientY + 14;
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+  // Reposition if overflowing
+  const r = el.getBoundingClientRect();
+  if (r.right > W - 10)  el.style.left = (e.clientX - r.width - 14) + 'px';
+  if (r.bottom > H - 10) el.style.top  = (e.clientY - r.height - 14) + 'px';
+}
+document.addEventListener('mousemove', e => {
+  const el = document.getElementById('tooltip');
+  if (el.style.display === 'block') positionTip(e);
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════════════════════════════
+function renderExport() {
+  let out = '';
+  let prevWasBlank = false;
+
+  for (let i = 0; i < sections.length; i++) {
+    const s = sections[i];
+    const isMacro = s.isMacro || (s.parent && s.parent.includes(','));
+
+    // Section header line
+    const header = s.parent ? `[${s.name}]:${s.parent}` : `[${s.name}]`;
+    out += header + '\n';
+
+    if (isMacro) {
+      // Macro sections have no item body
+    } else {
+      for (const it of s.items) {
+        if (it.type === 'comment') {
+          out += `; ${it.val}\n`;
+        } else {
+          out += `${it.val}\n`;
+        }
+      }
+    }
+
+    out += '\n';
+  }
+
+  document.getElementById('exportArea').value = out || '; No sections defined yet.';
+}
+
+function copyExport() {
+  navigator.clipboard.writeText(document.getElementById('exportArea').value)
+    .then(() => notify('Copied!'));
+}
+
+function downloadExport() {
+  const text = document.getElementById('exportArea').value;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = 'grounded_trade_categories.ltx';
+  a.click();
+  notify('Downloaded!');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  FILE LIST RENDER
+// ══════════════════════════════════════════════════════════════════
+function renderLoadedFiles() {
+  const el = document.getElementById('loadedFilesList');
+  if (!loadedFiles.length) { el.innerHTML = ''; return; }
+  el.innerHTML = loadedFiles.map((f, i) => `
+    <div class="loaded-file">
+      <span class="lf-tag ${f.type}">${f.type.toUpperCase()}</span>
+      <span class="lf-name" title="${escHtml(f.name)}">${escHtml(f.name)}</span>
+      <span class="lf-rm" onclick="unloadFile(${i})">✕</span>
+    </div>
+  `).join('');
+}
+
+function unloadFile(idx) {
+  loadedFiles.splice(idx, 1);
+  renderLoadedFiles();
+  notify('File removed from list (data stays loaded until page reload)');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════════════════════════════
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+let notifTimer;
+function notify(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function showHelp() { document.getElementById('helpModal').classList.add('show'); }
+function hideHelp() { document.getElementById('helpModal').classList.remove('show'); }
+
+// ══════════════════════════════════════════════════════════════════
+//  RESIZE HANDLES
+// ══════════════════════════════════════════════════════════════════
+(function() {
+  const handle = document.getElementById('leftResizeHandle');
+  const grid   = document.getElementById('appGrid');
+  const MIN_W  = 180, MAX_W = 560;
+  let dragging = false, startX = 0, startW = 0;
+  handle.addEventListener('mousedown', e => {
+    dragging = true; startX = e.clientX;
+    startW = parseInt(getComputedStyle(grid).gridTemplateColumns.split(' ')[0]) || 320;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    grid.style.setProperty('--left-w', Math.min(MAX_W, Math.max(MIN_W, startW + (e.clientX - startX))) + 'px');
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false; handle.classList.remove('dragging');
+    document.body.style.cursor = ''; document.body.style.userSelect = '';
+  });
+})();
+
+// Keyboard shortcut: Enter in new section name field
+document.getElementById('newSecName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addSection();
+});
+
+// Close modal on overlay click
+document.getElementById('helpModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('helpModal')) hideHelp();
+});
+</script>
+</body>
+</html>
