@@ -166,15 +166,15 @@
   .item-list-wrap { padding:4px 0; }
   .item-entry {
     padding:4px 10px 4px 14px; display:flex; align-items:center; gap:6px;
-    cursor:grab; border-bottom:1px solid #181e14; transition:background .1s; user-select:none; min-width:0;
+    cursor:grab; border-bottom:1px solid #181e14; transition:background .1s; user-select:none;
   }
   .item-entry:hover { background:var(--bg4); }
   .item-entry.dragging-src { opacity:.4; }
   .item-entry.in-section { border-left:2px solid var(--accent-dim); }
   .ie-id { font-family:var(--mono); font-size:11px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .ie-name { font-family:var(--sans); font-size:11px; color:var(--text3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px; }
+  .ie-name { font-family:var(--sans); font-size:11px; color:var(--text3); font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .item-entry:hover .ie-name { color:var(--text2); }
-  .ie-section-badge { font-size:9px; font-family:var(--mono); color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:2px; padding:0 4px; flex-shrink:0; margin-left:auto; }
+  .ie-section-badge { font-size:9px; font-family:var(--mono); color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:2px; padding:0 4px; flex-shrink:0; }
 
   /* ── CENTER: SECTIONS ── */
   .sections-toolbar { padding:8px; border-bottom:1px solid var(--border); display:flex; gap:6px; align-items:center; flex-shrink:0; }
@@ -267,13 +267,13 @@
   .sec-item {
     padding:3px 10px 3px 16px; display:flex; align-items:center; gap:6px;
     font-family:var(--mono); font-size:11px; color:var(--text2);
-    cursor:grab; border-bottom:1px solid #1a1f16; transition:background .1s; user-select:none; min-width:0;
+    cursor:grab; border-bottom:1px solid #1a1f16; transition:background .1s; user-select:none;
   }
   .sec-item:hover { background:var(--bg4); color:var(--text); }
   .sec-item.dragging-src { opacity:.35; }
   .sec-item .drag-handle { color:var(--text3); font-size:12px; cursor:grab; }
   .sec-item .si-id { overflow:hidden; text-overflow:ellipsis; }
-  .sec-item .si-name { font-family:var(--sans); font-size:11px; color:var(--text3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
+  .sec-item .si-name { font-family:var(--sans); font-style:italic; font-size:11px; color:var(--text3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .sec-item:hover .si-name { color:var(--text2); }
   .sec-item .si-rm { color:var(--text3); cursor:pointer; flex-shrink:0; opacity:0; }
   .sec-item:hover .si-rm { opacity:1; }
@@ -312,9 +312,8 @@
     box-shadow:0 4px 20px rgba(0,0,0,.5); display:none;
   }
   #tooltip .tt-id   { font-family:var(--mono); color:var(--accent); font-size:11px; margin-bottom:4px; }
-  #tooltip .tt-name { font-weight:700; font-size:14px; color:var(--text); }
-  #tooltip .tt-cost { font-size:12px; color:var(--accent); font-family:var(--mono); }
-  #tooltip .tt-desc { color:var(--text2); font-size:11px; line-height:1.5; }
+  #tooltip .tt-name { font-weight:700; font-size:14px; color:var(--text); margin-bottom:4px; }
+  #tooltip .tt-desc { color:var(--text2); font-size:11px; line-height:1.5; max-height:120px; overflow:hidden; }
 
   /* ── NOTIF ── */
   #notif {
@@ -443,10 +442,7 @@
 
 <div id="tooltip">
   <div class="tt-id" id="ttId"></div>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-    <div class="tt-name" id="ttName"></div>
-    <div class="tt-cost" id="ttCost"></div>
-  </div>
+  <div class="tt-name" id="ttName"></div>
   <div class="tt-desc" id="ttDesc"></div>
 </div>
 <div id="notif"></div>
@@ -557,7 +553,7 @@ function parseCatFile(text) {
     if (t.startsWith(';')) { const c=t.slice(1).trim(); if(c) curSec.items.push({type:'comment',val:c}); continue; }
     if (!t) continue;
     const im = t.match(/^([A-Za-z0-9_.\-]+)(?:\s*;.*)?$/);
-    if (im) { const id=im[1]; curSec.items.push({type:'item',val:id}); if(!itemDB[id]) itemDB[id]={inv_name_key:'',description_key:'',parent:null,cost:null}; }
+    if (im) { const id=im[1]; curSec.items.push({type:'item',val:id}); if(!itemDB[id]) itemDB[id]={inv_name_key:'',description_key:'',parent:null}; }
   }
   updateSectionDatalist();
 }
@@ -569,15 +565,14 @@ function parseLtxConfig(text) {
     const hm = l.match(/\[([^\]]+)\]:(.+)/);
     if (hm) {
       curId=hm[1];
-      if(!itemDB[curId]) itemDB[curId]={inv_name_key:'',description_key:'',parent:null,cost:null};
+      if(!itemDB[curId]) itemDB[curId]={inv_name_key:'',description_key:'',parent:null};
       const parent = hm[2].split(',')[0].trim();
       itemDB[curId].parent = parent;
       continue;
     }
     if (!curId) continue;
     const nm=l.match(/^inv_name\s*=\s*([A-Za-z0-9_.\-]+)/); if(nm){itemDB[curId].inv_name_key=nm[1];continue;}
-    const dm=l.match(/^description\s*=\s*([A-Za-z0-9_.\-]+)/); if(dm){itemDB[curId].description_key=dm[1];continue;}
-    const cm=l.match(/^cost\s*=\s*([0-9]+)/); if(cm){itemDB[curId].cost=cm[1];}
+    const dm=l.match(/^description\s*=\s*([A-Za-z0-9_.\-]+)/); if(dm){itemDB[curId].description_key=dm[1];}
   }
 }
 
@@ -604,12 +599,6 @@ function getItemDesc(id) {
   if(e.description_key) return e.description_key;
   if(e.parent) return getItemDesc(e.parent);
   return '';
-}
-function getItemCost(id) {
-  const e=itemDB[id]; if(!e) return null;
-  if(e.cost) return e.cost;
-  if(e.parent) return getItemCost(e.parent);
-  return null;
 }
 function getItemSection(id) {
   for(const s of sections) if(s.items.some(it=>it.type==='item'&&it.val===id)) return s.name;
@@ -736,7 +725,7 @@ function addItemToSection(secId){
   const id=inp.value.trim(); if(!id) return;
   const s=sections.find(s=>s.id===secId); if(!s) return;
   if(s.items.some(it=>it.type==='item'&&it.val===id)){notify('Already in section');return;}
-  s.items.push({type:'item',val:id}); if(!itemDB[id]) itemDB[id]={inv_name_key:'',description_key:'',parent:null,cost:null};
+  s.items.push({type:'item',val:id}); if(!itemDB[id]) itemDB[id]={inv_name_key:'',description_key:'',parent:null};
   inp.value=''; renderSections();renderItemList();renderExport();updateStats();
 }
 function addCommentToSection(secId){
@@ -980,7 +969,6 @@ function showTip(e,id){
   tipTimer=setTimeout(()=>{
     document.getElementById('ttId').textContent  =id;
     document.getElementById('ttName').textContent=getItemName(id)||'(no name found)';
-    document.getElementById('ttCost').textContent=getItemCost(id)?getItemCost(id)+' RU':'-';
     document.getElementById('ttDesc').textContent=getItemDesc(id)||'(no description)';
     document.getElementById('tooltip').style.display='block'; posTip(e);
   },180);
