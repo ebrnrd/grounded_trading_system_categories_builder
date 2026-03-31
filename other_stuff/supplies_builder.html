@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grounded Trading System Supplies Builder</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0d0f0b;
+    --bg2: #121510;
+    --bg3: #181c14;
+    --bg4: #1e241a;
+    --panel: #141812;
+    --border: #2a3424;
+    --border2: #3a4832;
+    --accent: #6daa3f;
+    --accent2: #4e7d2c;
+    --accent-dim: #3a5a1f;
+    --text: #c8d4b8;
+    --text2: #8fa07a;
+    --text3: #556645;
+    --danger: #c04040;
+    --warn: #c08830;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Rajdhani', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+  }
+  .logo { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+  .logo span { color: var(--text3); }
+  .header-title { font-size: 20px; font-weight: 700; letter-spacing: 1px; color: var(--text); text-transform: uppercase; display: flex; align-items: center; gap: 12px; }
+  .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+  .app {
+    flex: 1;
+    display: grid;
+    grid-template-columns: var(--left-w, 300px) 5px 1fr 340px;
+    overflow: hidden;
+  }
+
+  .resize-handle {
+    width: 5px; background: transparent; cursor: col-resize;
+    flex-shrink: 0; position: relative; z-index: 10;
+    transition: background 0.15s; border-right: 1px solid var(--border);
+  }
+  .resize-handle:hover, .resize-handle.dragging { background: var(--accent-dim); border-right-color: var(--accent); }
+
+  .panel { display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); }
+  .panel:last-child { border-right: none; }
+  .panel-header {
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+    padding: 8px 12px; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .panel-title { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; flex: 1; }
+  .panel-body { flex: 1; overflow-y: auto; }
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .btn {
+    font-family: var(--sans); font-weight: 600; font-size: 13px; letter-spacing: 0.5px;
+    padding: 5px 12px; border: 1px solid var(--border2); border-radius: 3px;
+    background: var(--bg4); color: var(--text); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn:hover { background: var(--accent-dim); border-color: var(--accent); color: #fff; }
+  .btn.primary { background: var(--accent-dim); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent2); }
+  .btn.danger { border-color: var(--danger); color: var(--danger); }
+  .btn.danger:hover { background: #3a1010; }
+  .btn.small { font-size: 11px; padding: 3px 8px; }
+  .btn.xs { font-size: 10px; padding: 2px 6px; }
+
+  /* ── TABS ── */
+  .tab-bar { display: flex; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--bg3); }
+  .tab-btn {
+    flex: 1; padding: 7px 10px; font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; text-align: center; cursor: pointer; color: var(--text3);
+    border: none; border-bottom: 2px solid transparent; transition: all .15s; user-select: none; background: transparent;
+  }
+  .tab-btn:hover { color: var(--text2); background: var(--bg4); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--bg2); }
+  .tab-pane { display: none; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
+  .tab-pane.active { display: flex; }
+
+  /* ── FILES TAB ── */
+  .file-tab-body { flex: 1; overflow-y: auto; padding: 8px; min-height: 0; }
+  .file-tab-body::-webkit-scrollbar { width: 4px; }
+  .file-tab-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .file-zone {
+    border: 1px dashed var(--border2); border-radius: 4px; margin-bottom: 6px;
+    padding: 11px; text-align: center; cursor: pointer; transition: all .15s;
+    font-size: 12px; color: var(--text3);
+  }
+  .file-zone:hover { border-color: var(--accent); color: var(--text2); background: var(--bg3); }
+  .file-zone input { display: none; }
+
+  .file-group { margin-bottom: 10px; }
+  .file-group-header {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+    padding: 4px 8px; border-radius: 3px; background: var(--bg3); border: 1px solid var(--border);
+  }
+  .fgh-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; flex: 1; }
+  .fgh-label.ltx { color: var(--accent); }
+  .fgh-label.xml { color: #4a8aaa; }
+  .fgh-label.cat { color: var(--warn); }
+
+  .loaded-file {
+    display: flex; align-items: center; gap: 6px; padding: 3px 8px;
+    border-radius: 3px; font-family: var(--mono); font-size: 10px; color: var(--text2);
+    border: 1px solid var(--border); margin-bottom: 2px; background: var(--bg);
+  }
+  .lf-tag { font-size: 9px; padding: 1px 5px; border-radius: 2px; font-weight: 700; letter-spacing: .5px; flex-shrink: 0; }
+  .lf-tag.ltx { background: #2a3a1a; color: var(--accent); }
+  .lf-tag.xml { background: #1a2a3a; color: #4a8aaa; }
+  .lf-tag.cat { background: #3a2a1a; color: var(--warn); }
+  .lf-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lf-rm { color: var(--text3); cursor: pointer; flex-shrink: 0; }
+  .lf-rm:hover { color: var(--danger); }
+
+  input[type=text], input[type=number], select {
+    font-family: var(--mono); font-size: 12px; background: var(--bg);
+    border: 1px solid var(--border2); border-radius: 3px; color: var(--text);
+    padding: 5px 8px; outline: none; transition: border-color 0.15s;
+  }
+  input[type=text]:focus, input[type=number]:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--bg3); }
+
+  .search-wrap { padding: 8px; }
+  .search-wrap input { width: 100%; }
+
+  .cat-group { border-bottom: 1px solid var(--border); }
+  .cat-header {
+    padding: 7px 12px; font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+    color: var(--accent); background: var(--bg3); cursor: pointer;
+    display: flex; align-items: center; gap: 6px; user-select: none;
+    text-transform: uppercase; border-bottom: 1px solid var(--border);
+  }
+  .cat-header:hover { background: var(--bg4); }
+  .cat-chevron { font-size: 8px; color: var(--text3); transition: transform 0.15s; }
+  .cat-chevron.open { transform: rotate(90deg); }
+  .cat-items { display: none; }
+  .cat-items.open { display: block; }
+  .item-row {
+    padding: 4px 12px 4px 20px; font-family: var(--mono); font-size: 11px;
+    color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 4px;
+    transition: background 0.1s; border-bottom: 1px solid #1a1f16;
+  }
+  .item-row:hover { background: var(--bg4); color: var(--text); }
+  .item-row .add-icon { font-size: 14px; color: var(--accent); opacity: 0; transition: opacity 0.1s; flex-shrink: 0; }
+  .item-row:hover .add-icon { opacity: 1; }
+  .item-in-trader-icon { color: var(--accent); font-size: 12px; margin-right: 4px; flex-shrink: 0; }
+  .item-disp-name {
+    font-family: var(--sans); font-size: 11px; color: var(--text3); flex: 1;
+    text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    padding: 0 6px 0 8px; font-style: italic;
+  }
+  .item-row:hover .item-disp-name { color: var(--text2); }
+
+  .tier-item-disp-name {
+    font-family: var(--sans); font-size: 11px; color: var(--text3); flex: 1;
+    text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    padding: 0 6px; font-style: italic; min-width: 0;
+  }
+
+  .traders-wrap { padding: 8px; }
+  .trader-bar { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .trader-bar input { flex: 1; }
+
+  .trader-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.15s;
+  }
+  .trader-card.active { border-color: var(--accent-dim); }
+  .trader-card-header {
+    padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+    background: var(--bg4); border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .trader-card-header:hover { background: #222c1a; }
+  .trader-card.collapsed .tier-list { display: none; }
+  .trader-card.collapsed .trader-card-header { border-bottom: none; }
+  .trader-name { font-weight: 700; font-size: 14px; letter-spacing: 0.5px; flex: 1; text-transform: uppercase; }
+  .trader-meta { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .collapse-chevron { font-size: 10px; color: var(--text3); transition: transform 0.2s; cursor: pointer; user-select: none; margin-left: 4px; }
+  .collapse-chevron:hover { color: var(--text2); }
+  .trader-card.collapsed .collapse-chevron, .tier-card.collapsed .collapse-chevron { transform: rotate(-90deg); }
+
+  .tier-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+
+  .tier-card { background: var(--bg); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+  .tier-card.collapsed .groups-list { display: none; }
+  .tier-card.collapsed .add-group-wrap { display: none; }
+  .tier-card.collapsed .group-actions { display: none; }
+  .tier-card.collapsed .tier-header { border-bottom: none; }
+  .trader-card.collapsed .add-tier-wrap { display: none; }
+  .tier-header {
+    padding: 6px 10px; display: flex; align-items: center; gap: 8px;
+    background: var(--bg2); border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .tier-header:hover { background: #1e2618; }
+  .tier-label { font-family: var(--mono); font-size: 11px; color: var(--accent); flex: 1; }
+  .tier-parent { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+  .tier-count { font-family: var(--mono); font-size: 10px; color: var(--text3); background: var(--bg3); padding: 1px 6px; border-radius: 2px; border: 1px solid var(--border); }
+
+  /* ── GROUPS ── */
+  .groups-list { display: flex; flex-direction: column; }
+
+  .group-card { border-bottom: 1px solid var(--border); background: var(--bg); }
+  .group-card:last-child { border-bottom: none; }
+  .group-card.selected { background: #0c1609; }
+
+  .group-header {
+    display: flex; align-items: center; gap: 6px; padding: 5px 8px;
+    cursor: pointer; background: #111608; border-bottom: 1px solid var(--border);
+    transition: background 0.1s; user-select: none;
+  }
+  .group-card.selected .group-header { background: #152008; }
+  .group-header:hover { background: #192a0c; }
+
+  .group-drag-handle { cursor: grab; color: var(--text3); font-size: 12px; padding: 0 2px; flex-shrink: 0; }
+  .group-drag-handle:hover { color: var(--accent); }
+  .group-drag-handle:active { cursor: grabbing; }
+
+  .group-sel-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; display: none; }
+  .group-card.selected .group-sel-dot { display: block; }
+
+  .group-name-label { font-family: var(--mono); font-size: 10px; color: var(--accent2); letter-spacing: 1px; }
+  .group-name-label.unnamed { color: var(--text3); font-style: italic; }
+  .group-name-label { cursor: pointer; padding: 1px 4px; margin: -1px -4px; border-radius: 2px; }
+  .group-name-label:hover { background: var(--bg3); }
+  .rename-input {
+    font-family: var(--mono); font-size: 10px; color: var(--accent2); letter-spacing: 1px;
+    background: var(--bg); border: 1px solid var(--accent); border-radius: 2px;
+    padding: 1px 4px; width: auto; min-width: 40px; max-width: 200px; outline: none;
+  }
+
+  .group-item-count { font-family: var(--mono); font-size: 9px; color: var(--text3); background: var(--bg3); padding: 1px 5px; border-radius: 2px; border: 1px solid var(--border); margin-left: auto; }
+
+  .add-group-wrap {
+    padding: 4px 8px; background: #0c100a;
+    border-top: 1px solid var(--border); display: flex; gap: 5px; align-items: center;
+  }
+  .add-group-wrap input { flex: 1; font-size: 11px; padding: 3px 6px; }
+
+  .group-actions {
+    padding: 4px 8px 5px; background: #0a0e08;
+    border-top: 1px dashed var(--border); display: flex; gap: 5px; align-items: center;
+  }
+
+  .group-items-list { padding: 2px 0; min-height: 4px; }
+
+  .tier-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 3px 8px 3px 28px; font-family: var(--mono); font-size: 11px;
+    color: var(--text2); border-bottom: 1px solid #161a12; transition: background 0.1s;
+  }
+  .tier-item:hover { background: var(--bg2); }
+  .tier-item-name { flex-shrink: 0; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tier-item-spacer { flex: 1; }
+  .tier-item input[type=number] { width: 46px; padding: 2px 5px; font-size: 11px; text-align: center; }
+  .tier-item-sep { color: var(--text3); font-size: 10px; }
+  .tier-item .rm { cursor: pointer; color: var(--text3); font-size: 13px; transition: color 0.1s; padding: 0 2px; }
+  .tier-item .rm:hover { color: var(--danger); }
+
+  .sortable-ghost { opacity: 0.35; background: var(--accent-dim); }
+  .drag-handle { cursor: grab; color: var(--text3); font-size: 14px; padding: 0 4px; user-select: none; flex-shrink: 0; }
+  .drag-handle:hover { color: var(--accent); }
+  .drag-handle:active { cursor: grabbing; }
+
+  .tier-comment {
+    display: flex; align-items: center; gap: 5px;
+    padding: 3px 8px 3px 28px; border-bottom: 1px solid #161a12;
+    background: #0f130d; transition: background 0.1s;
+  }
+  .tier-comment:hover { background: #131710; }
+  .comment-prefix { font-family: var(--mono); font-size: 12px; color: var(--text3); flex-shrink: 0; }
+  .comment-input {
+    font-family: var(--mono) !important; font-size: 11px !important; color: var(--text3) !important;
+    background: transparent !important; border: none !important;
+    border-bottom: 1px dashed var(--border) !important; border-radius: 0 !important;
+    padding: 1px 3px !important; width: 0; flex: 1; outline: none !important;
+  }
+  .comment-input:focus { color: var(--text2) !important; border-bottom-color: var(--accent-dim) !important; }
+  .comment-input::placeholder { color: var(--text3); opacity: 0.5; }
+  .tier-comment .rm { cursor: pointer; color: var(--text3); font-size: 13px; transition: color 0.1s; padding: 0 2px; flex-shrink: 0; }
+  .tier-comment .rm:hover { color: var(--danger); }
+
+  .add-tier-wrap { padding: 6px 8px 8px; }
+  .add-tier-row { display: flex; gap: 6px; align-items: center; }
+  .add-tier-row input { flex: 1; }
+
+  .export-panel { display: flex; flex-direction: column; }
+  .export-label { font-size: 11px; color: var(--text3); font-family: var(--mono); letter-spacing: 0.5px; }
+  .export-textarea {
+    flex: 1; background: var(--bg); border: none; border-top: 1px solid var(--border);
+    color: var(--text2); font-family: var(--mono); font-size: 11px;
+    padding: 10px 12px; resize: none; outline: none; line-height: 1.7;
+  }
+  .export-actions { padding: 8px; display: flex; gap: 6px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+  .sel-indicator {
+    font-family: var(--mono); font-size: 10px; color: var(--accent);
+    padding: 4px 12px; background: var(--bg3); border-bottom: 1px solid var(--border); display: none;
+  }
+  .sel-indicator.show { display: block; }
+
+  .file-label {
+    display: inline-flex; align-items: center; gap: 6px; font-family: var(--sans);
+    font-weight: 600; font-size: 13px; letter-spacing: 0.5px; padding: 5px 12px;
+    border: 1px solid var(--border2); border-radius: 3px; background: var(--bg4);
+    color: var(--text); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .file-label:hover { background: var(--accent-dim); border-color: var(--accent); color: #fff; }
+  input[type=file] { display: none; }
+
+  .empty { text-align: center; padding: 24px 12px; color: var(--text3); font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; }
+  * { scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+
+  .badge { font-family: var(--mono); font-size: 9px; padding: 2px 5px; border-radius: 2px; background: var(--accent-dim); color: var(--accent); letter-spacing: 0.5px; border: 1px solid var(--accent-dim); }
+
+  .ow-badge { font-family: var(--mono); font-size: 9px; padding: 1px 5px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; cursor: help; }
+  .ow-badge-dead { background: #2a1010; color: var(--danger); border: 1px solid #5a2020; }
+  .ow-badge-active { background: #0e2010; color: #5aaa5a; border: 1px solid #1e5a1e; }
+  .ow-badge-both { background: #2a2010; color: var(--warn); border: 1px solid #5a4010; }
+  .tier-item.ow-dead { background: #120d0d; }
+  .tier-item.ow-dead .tier-item-name { color: #6a4040; }
+  .tier-item.ow-active { background: #0a140a; }
+  .tier-item.ow-both { background: #130f08; }
+
+  .row { display: flex; gap: 8px; align-items: center; }
+  .flex1 { flex: 1; }
+
+  #notif {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--accent-dim); border: 1px solid var(--accent); color: #fff;
+    font-family: var(--mono); font-size: 12px; padding: 7px 18px; border-radius: 3px;
+    pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 999; white-space: nowrap;
+  }
+  #notif.show { opacity: 1; }
+
+  .export-select-wrap { padding: 8px; border-bottom: 1px solid var(--border); }
+
+  .group-empty-hint {
+    padding: 6px 12px; font-family: var(--mono); font-size: 10px;
+    color: var(--text3); font-style: italic; opacity: 0.6;
+  }
+
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7); z-index: 1000;
+    display: none; justify-content: center; align-items: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    max-width: 600px; max-height: 80vh; overflow-y: auto;
+    padding: 20px 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+  .modal h2 { margin: 0 0 16px; color: var(--accent); font-size: 18px; letter-spacing: 1px; }
+  .modal ol { margin: 0; padding-left: 20px; }
+  .modal li { margin-bottom: 12px; line-height: 1.5; color: var(--text); }
+  .modal li strong { color: var(--accent); }
+  .modal-close {
+    float: right; background: none; border: none; color: var(--text3);
+    font-size: 20px; cursor: pointer; margin-top: -10px;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  #tooltip {
+    position: fixed; z-index: 9999; pointer-events: none;
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px;
+    padding: 9px 13px; max-width: 360px; font-size: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.55); display: none; min-width: 180px;
+  }
+  #tooltip .tt-id   { font-family: var(--mono); color: var(--accent); font-size: 10px; margin-bottom: 4px; letter-spacing: .5px; }
+  #tooltip .tt-top  { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  #tooltip .tt-name { font-weight: 700; font-size: 14px; color: var(--text); flex: 1; }
+  #tooltip .tt-cost { font-size: 11px; color: var(--accent); font-family: var(--mono); flex-shrink: 0; }
+  #tooltip .tt-meta { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; }
+  #tooltip .tt-meta-row { display: flex; gap: 6px; align-items: baseline; font-family: var(--mono); font-size: 10px; }
+  #tooltip .tt-meta-label { color: var(--text3); letter-spacing: .5px; flex-shrink: 0; }
+  #tooltip .tt-meta-val   { color: var(--text2); }
+  #tooltip .tt-sep  { border: none; border-top: 1px solid var(--border); margin: 5px 0; }
+  #tooltip .tt-desc { color: var(--text2); font-size: 11px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="modal-overlay" id="tutorialModal" onclick="if(event.target===this)hideTutorial()">
+  <div class="modal">
+    <button class="modal-close" onclick="hideTutorial()">&times;</button>
+    <h2>How It Works</h2>
+    <ol>
+      <li><strong>Load Categories File</strong><br>Click "Load Categories" button and select your categories .ltx file (from the Grounded Trading System addon). This file contains a list of all game items organized by categories. The left panel will populate with items grouped by category.</li>
+      <li><strong>Load Item Names (Optional but recommended)</strong><br>Click "Load Config (.ltx)" to load one or more item definition .ltx files (e.g. <code>items_weapons.ltx</code>, <code>items_food.ltx</code>). These let the tool resolve exact in-game names and descriptions via the parent inheritance chain. Then click "Load Names (.xml)" to load the matching string table XML files. Both are optional but together give the most accurate item names.</li>
+      <li><strong>Create a New Trader</strong><br>Enter a trader name in the input field (e.g., "sidorovich") and click "+ Add" button.</li>
+      <li><strong>Add Tiers to Trader</strong><br>In Stalker Anomaly, each trader has a list of supplies tiers that usually get unlocked by improving the goodwill with that trader's faction. Check the unpacked game files to see how many supplies tiers a specific trader has. Enter a tier name (e.g., "supplies_1") and optionally add a parent tier name for inheritance (e.g., "supplies_1" as parent for "supplies_2"). Click "+ Tier" and repeat for each tier the trader has.</li>
+      <li><strong>Add Groups to Tier</strong><br>Enter a group name and click "+ Group". You can add multiple groups per tier.</li>
+      <li><strong>Add Items</strong><br>Click on any group header to select it. Browse or search items in the left panel and click any item to add it to the selected group. In the middle panel, you can adjust amount and chance values inline.</li>
+      <li><strong>Export</strong><br>Select trader from dropdown in right panel and click "Copy" or "Download .ltx".</li>
+      <li><strong>Import Existing Traders (Optional)</strong><br>To edit an existing trader, enter the trader name first, then click "Import" and select the trader's .ltx file from the configs/items/trade/ folder in your unpacked game files. The tool will load all tiers, groups, and items from that file.</li>
+    </ol>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<header>
+  <div class="logo">S.T.A.L.K.E.R. <span>// </span>ANOMALY</div>
+  <div class="header-title">Trader Supplies Builder</div>
+  <div class="header-actions">
+    <button class="btn primary" onclick="exportAll()">⬇ Export .ltx</button>
+    <button class="btn small" onclick="showTutorial()">How it works?</button>
+  </div>
+</header>
+
+<div class="app" id="appGrid">
+
+  <!-- LEFT: ITEM BROWSER + FILES -->
+  <div class="panel" id="leftPanel">
+    <div class="panel-header">
+      <span class="panel-title">Browser</span>
+      <span id="catCount" class="badge">0 items</span>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabBtnItems" onclick="switchTab('items')">Items</button>
+      <button class="tab-btn"        id="tabBtnFiles" onclick="switchTab('files')">Files</button>
+    </div>
+
+    <!-- ITEMS TAB -->
+    <div class="tab-pane active" id="tabItems">
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Search items..." oninput="filterItems()">
+        <button class="btn small" style="margin-top:4px" onclick="collapseAllCats()" title="Collapse all categories">Collapse all</button>
+      </div>
+      <div class="sel-indicator" id="selIndicator">← Click item to add to selected group</div>
+      <div class="panel-body" id="catList">
+        <div class="empty">Load a categories .ltx file<br>to browse items</div>
+      </div>
+    </div>
+
+    <!-- FILES TAB -->
+    <div class="tab-pane" id="tabFiles">
+      <div class="file-tab-body">
+        <div class="file-zone" onclick="document.getElementById('catFile').click()">
+          <input type="file" id="catFile" accept=".ltx,.txt" onchange="onCatFileChange(this)">
+          📂 Load <strong>trade_categories.ltx</strong>
+        </div>
+        <div class="file-zone" onclick="document.getElementById('ltxFiles').click()">
+          <input type="file" id="ltxFiles" accept=".ltx,.txt" multiple onchange="onLtxFilesChange(this)">
+          📂 Add <strong>.ltx config files</strong> (multiple)
+        </div>
+        <div class="file-zone" onclick="document.getElementById('namesFiles').click()">
+          <input type="file" id="namesFiles" accept=".xml" multiple onchange="onNamesFilesChange(this)">
+          📂 Add <strong>.xml string files</strong> (multiple)
+        </div>
+        <div id="loadedFilesList"></div>
+      </div>
+    </div>
+  </div><div class="resize-handle" id="leftResizeHandle"></div>
+
+  <!-- MIDDLE: TRADERS & TIERS -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Traders & Tiers</span></div>
+    <div class="panel-body">
+      <div class="traders-wrap">
+        <div class="trader-bar">
+          <input type="text" id="newTraderName" placeholder="New trader name (e.g. sidorovich)">
+          <button class="btn primary" onclick="addTrader()">+ Add</button>
+          <button class="btn" onclick="triggerImportDialog()" title="Import an existing trader .ltx file">⬆ Import</button>
+          <input type="file" id="importFile" accept=".ltx,.txt" style="display:none">
+        </div>
+        <div id="traderList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: EXPORT PREVIEW -->
+  <div class="panel export-panel">
+    <div class="panel-header"><span class="panel-title">LTX Output</span></div>
+    <div class="export-select-wrap">
+      <div class="row">
+        <span class="export-label flex1">Export trader:</span>
+        <select id="exportTraderSel" style="flex:2" onchange="renderExport()">
+          <option value="__all__">All traders</option>
+        </select>
+      </div>
+    </div>
+    <textarea class="export-textarea" id="exportArea" readonly placeholder="; Output will appear here&#10;; Create a trader and add items to get started"></textarea>
+    <div class="export-actions">
+      <button class="btn primary flex1" onclick="copyExport()">Copy</button>
+      <button class="btn flex1" onclick="downloadExport()">Download .ltx</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="tooltip">
+  <div class="tt-id"  id="ttId"></div>
+  <div class="tt-top">
+    <div class="tt-name" id="ttName"></div>
+    <div class="tt-cost" id="ttCost"></div>
+  </div>
+  <div class="tt-meta" id="ttMeta"></div>
+  <hr  class="tt-sep"  id="ttSep">
+  <div class="tt-desc" id="ttDesc"></div>
+</div>
+<div id="notif"></div>
+
+<script>
+// ── STATE ──
+// traders: [{id, name, tiers: [{id, name, parent, groups: [{id, name, items: [{type,name?,amt?,chance?,text?}]}]}]}]
+let categories       = {};
+let itemDB           = {};  // id → {inv_name_key, description_key, parent, cost}  (from .ltx configs)
+let stringDB         = {};  // string_id → text  (from .xml files, used with itemDB)
+let itemNames        = {};  // legacy heuristic names (from .xml, used as fallback)
+let itemDescriptions = {};  // legacy heuristic descriptions (from .xml, used as fallback)
+let loadedFiles      = [];  // [{name, type:'cat'|'ltx'|'xml'}]
+let traders          = [];
+let selectedGroup    = null; // { traderId, tierId, groupId }
+let uid = 1;
+const genId = () => uid++;
+
+// ── CACHE ──
+const CACHE_KEY_CATS   = 'trader_builder_categories';
+const CACHE_KEY_NAMES  = 'trader_builder_names';
+const CACHE_KEY_ITEMDB = 'trader_builder_itemdb';
+const CACHE_KEY_FILES  = 'trader_builder_files';
+function saveCategoriesToCache(text) { try { localStorage.setItem(CACHE_KEY_CATS, text); } catch(e) {} }
+function saveNamesToCache() { try { localStorage.setItem(CACHE_KEY_NAMES, JSON.stringify({ names: itemNames, descriptions: itemDescriptions })); } catch(e) {} }
+function saveItemDbToCache() { try { localStorage.setItem(CACHE_KEY_ITEMDB, JSON.stringify({ itemDB, stringDB })); } catch(e) {} }
+function saveFilesToCache() { try { localStorage.setItem(CACHE_KEY_FILES, JSON.stringify(loadedFiles)); } catch(e) {} }
+function loadCategoriesFromCache() { const c = localStorage.getItem(CACHE_KEY_CATS); if (c) { categories = parseLtx(c); return true; } return false; }
+function loadNamesFromCache() { const c = localStorage.getItem(CACHE_KEY_NAMES); if (c) { try { const data = JSON.parse(c); itemNames = data.names || {}; itemDescriptions = data.descriptions || {}; return true; } catch(e) {} } return false; }
+function loadItemDbFromCache() { const c = localStorage.getItem(CACHE_KEY_ITEMDB); if (c) { try { const data = JSON.parse(c); itemDB = data.itemDB || {}; stringDB = data.stringDB || {}; return true; } catch(e) {} } return false; }
+function loadFilesFromCache() { const c = localStorage.getItem(CACHE_KEY_FILES); if (c) { try { loadedFiles = JSON.parse(c); return true; } catch(e) {} } return false; }
+function clearCache() {
+  localStorage.removeItem(CACHE_KEY_CATS); localStorage.removeItem(CACHE_KEY_NAMES);
+  localStorage.removeItem(CACHE_KEY_ITEMDB); localStorage.removeItem(CACHE_KEY_FILES);
+  categories = {}; itemDB = {}; stringDB = {}; itemNames = {}; itemDescriptions = {}; loadedFiles = [];
+  renderLoadedFiles(); renderCatList(''); updateCatCount();
+  notify('Cache cleared');
+}
+
+function parseLtx(text) {
+  const result = {};
+  let cur = null;
+  for (let line of text.split(/\r?\n/)) {
+    line = line.trim();
+    if (!line || line.startsWith(';')) continue;
+    const hm = line.match(/^\[([^\]]+)\]/);
+    if (hm) {
+      if (hm[1].includes(':')) { cur = null; continue; }
+      cur = hm[1];
+      if (!result[cur]) result[cur] = [];
+    } else if (cur) {
+      const name = line.split(/[\s;]/)[0].trim();
+      if (name && !name.startsWith(';')) result[cur].push(name);
+    }
+  }
+  return result;
+}
+
+function initDefault() {
+  const hadCats   = loadCategoriesFromCache();
+  const hadNames  = loadNamesFromCache();
+  const hadItemDb = loadItemDbFromCache();
+  loadFilesFromCache();
+  if (!hadCats) categories = {};
+  renderCatList('');
+  updateCatCount();
+  renderLoadedFiles();
+  if (hadCats && hadNames) notify('Loaded from cache: ' + Object.keys(categories).length + ' sections, ' + Object.keys(itemNames).length + ' names' + (hadItemDb ? ', ' + Object.keys(itemDB).length + ' ltx items' : ''));
+  else if (hadCats)        notify('Loaded categories from cache: ' + Object.keys(categories).length + ' sections');
+  else if (hadNames)       notify('Loaded names from cache: ' + Object.keys(itemNames).length + ' names');
+}
+
+// ── GET ALL ITEMS FROM A TRADER ──
+function getTraderItems(traderId) {
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return new Set();
+  const items = new Set();
+  for (const tier of trader.tiers)
+    for (const group of tier.groups)
+      for (const e of (group.items || []))
+        if (e && e.type === 'item') items.add(e.name);
+  return items;
+}
+
+// ── CATEGORY RENDER ──
+function getOpenCatIds() {
+  const o = {};
+  document.querySelectorAll('.cat-items.open').forEach(el => { o[el.id] = true; });
+  return o;
+}
+
+function getItemDescription(id) {
+  // Primary: use itemDB parent-chain lookup via stringDB
+  const e = itemDB[id];
+  if (e) {
+    if (e.description_key && stringDB[e.description_key]) return stringDB[e.description_key];
+    if (e.description_key) return e.description_key;
+    if (e.parent) return getItemDescription(e.parent);
+  }
+  // Fallback: legacy heuristic matching from XML files
+  return itemDescriptions[id]
+    || itemDescriptions[id.replace(/_/g, '-')]
+    || itemDescriptions[id.replace(/\./g, '_')]
+    || itemDescriptions[id.replace(/_/g, '-').replace(/\./g, '_')]
+    || (id.startsWith('wpn_addon_') ? itemDescriptions[id.slice(3) + '_descr'] : null)
+    || '';
+}
+function getItemName(id) {
+  // Primary: use itemDB parent-chain lookup via stringDB
+  const e = itemDB[id];
+  if (e) {
+    if (e.inv_name_key && stringDB[e.inv_name_key]) return stringDB[e.inv_name_key];
+    if (e.inv_name_key) return e.inv_name_key;
+    if (e.parent) return getItemName(e.parent);
+  }
+  // Fallback: legacy heuristic matching from XML files
+  return itemNames[id]
+    || itemNames[id.replace(/_/g, '-')]
+    || itemNames[id.replace(/\./g, '_')]
+    || itemNames[id.replace(/_/g, '-').replace(/\./g, '_')]
+    || (id.startsWith('wpn_addon_') ? itemNames[id.slice(3)] : null)
+    || '';
+}
+
+function getItemCost(id) {
+  const e = itemDB[id];
+  if (e) {
+    if (e.cost) return e.cost;
+    if (e.parent) return getItemCost(e.parent);
+  }
+  return null;
+}
+function getItemTier(id) {
+  const e = itemDB[id];
+  if (e) {
+    if (e.tier) return e.tier;
+    if (e.parent) return getItemTier(e.parent);
+  }
+  return null;
+}
+function getItemAmmo(id) {
+  const e = itemDB[id];
+  if (e) {
+    if (e.ammo_class) return e.ammo_class;
+    if (e.parent) return getItemAmmo(e.parent);
+  }
+  return null;
+}
+function getItemCommunity(id) {
+  const e = itemDB[id];
+  if (e) {
+    if (e.community) return e.community;
+    if (e.parent) return getItemCommunity(e.parent);
+  }
+  return null;
+}
+
+function renderCatList(filter) {
+  const el = document.getElementById('catList');
+  const fl = filter.toLowerCase();
+  const wasOpen = getOpenCatIds();
+  let html = '';
+  const traderItems = selectedGroup ? getTraderItems(selectedGroup.traderId) : null;
+
+  const hasCategories = Object.keys(categories).length > 0;
+
+  if (!hasCategories && !fl) {
+    html = `<div class="empty">No Categories file loaded<br><br><label class="file-label">⬆ Load Categories<input type="file" id="catFileEmpty" accept=".ltx,.txt" style="display:none"></label></div>`;
+    el.innerHTML = html;
+    document.getElementById('catFileEmpty')?.addEventListener('change', function(e) {
+      const f = e.target.files[0]; if (!f) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        categories = parseLtx(ev.target.result);
+        saveCategoriesToCache(ev.target.result);
+        renderCatList(document.getElementById('searchInput').value);
+        updateCatCount();
+        notify('Categories loaded: ' + Object.keys(categories).length + ' sections (cached)');
+      };
+      reader.readAsText(f);
+    });
+    return;
+  }
+
+  for (const [cat, items] of Object.entries(categories)) {
+    const visible = fl ? items.filter(i => {
+      const itemDash = i.replace(/_/g, '-');
+      return i.toLowerCase().includes(fl) || itemDash.toLowerCase().includes(fl) ||
+        (itemNames[i] && itemNames[i].toLowerCase().includes(fl)) ||
+        (itemNames[itemDash] && itemNames[itemDash].toLowerCase().includes(fl));
+    }) : items;
+    if (!visible.length) continue;
+    const catId = 'cat_' + cat.replace(/[^a-z0-9]/gi, '_');
+    const addedCount = traderItems ? items.filter(i => traderItems.has(i)).length : 0;
+    const addedBadge = addedCount > 0 ? `<span class="badge" style="margin-right:4px">${addedCount}</span>` : '';
+    const isOpen = fl || wasOpen[catId];
+    html += `<div class="cat-group">
+      <div class="cat-header" onclick="toggleCat('${catId}')">
+        <span class="cat-chevron${isOpen?' open':''}" id="chev_${catId}">▶</span>
+        <span>${cat}</span>
+        <span style="margin-left:auto;font-size:9px;color:var(--text3)">${addedBadge}${visible.length}</span>
+      </div>
+      <div class="cat-items${isOpen?' open':''}" id="${catId}">`;
+    for (const item of visible) {
+      const inTrader = traderItems && traderItems.has(item);
+      const icon = inTrader ? '<span class="item-in-trader-icon" title="Already in this trader">✓</span>' : '';
+      const dispName = getItemName(item);
+      const disp = dispName ? `<span class="item-disp-name">${escHtml(dispName)}</span>` : '';
+      const descr = getItemDescription(item);
+      html += `<div class="item-row" onclick="addItemToSelected('${item}')" onmouseenter="showTip(event,'${item}')" onmouseleave="hideTip()">${icon}<span>${item}</span>${disp}<span class="add-icon">+</span></div>`;
+    }
+    html += `</div></div>`;
+  }
+  if (!html) html = `<div class="empty">No items match "${filter}"</div>`;
+  el.innerHTML = html;
+}
+
+function toggleCat(id) {
+  document.getElementById(id).classList.toggle('open');
+  document.getElementById('chev_' + id).classList.toggle('open');
+}
+function collapseAllCats() {
+  document.querySelectorAll('.cat-items').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.cat-chevron').forEach(el => el.classList.remove('open'));
+}
+function filterItems() { renderCatList(document.getElementById('searchInput').value); }
+function updateCatCount() {
+  document.getElementById('catCount').textContent = Object.values(categories).reduce((s,a)=>s+a.length,0) + ' items';
+}
+
+// ── XML NAME FILES ──
+function parseItemNamesXml(text) {
+  const result = {};
+  const descResult = {};
+  const re = /<string\s+id="([^"]+)"[^>]*>[\s\S]*?<text>([^<]*)<\/text>/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const id = m[1].trim(), disp = m[2].trim();
+    if (id.endsWith('_descr') || id.endsWith('_desc') || id.endsWith('_description')) {
+      if (!disp) continue;
+      let key = null;
+      if (id.startsWith('st_')) { key = id.slice(3); if (key.endsWith('_descr')) key = key.slice(0,-6); else if (key.endsWith('_desc')) key = key.slice(0,-5); else if (key.endsWith('_description')) key = key.slice(0,-12); }
+      else if (id.endsWith('_descr')) { key = id.slice(0,-6); }
+      else if (id.endsWith('_desc')) { key = id.slice(0,-5); }
+      else if (id.endsWith('_description')) { key = id.slice(0,-12); }
+      if (!key || descResult[key]) continue;
+      descResult[key] = disp;
+    } else {
+      if (!disp || disp.startsWith('%c[') || disp.startsWith('\\n')) continue;
+      let key = null;
+      if (id.startsWith('st_')) { key = id.slice(3); if (key.endsWith('_name')) key = key.slice(0,-5); }
+      else if (id.endsWith('_name')) { key = id.slice(0,-5); }
+      else { key = id; }
+      if (!key || result[key]) continue;
+      if (key.endsWith('_descr') || key.endsWith('_desc') || key.endsWith('_description')) continue;
+      result[key] = disp;
+    }
+  }
+  return { names: result, descriptions: descResult };
+}
+function mergeItemNames(n) { Object.assign(itemNames, n.names); Object.assign(itemDescriptions, n.descriptions); }
+
+// ── LTX CONFIG PARSER (item definitions with parent chain) ──
+function parseLtxConfig(text) {
+  let curId = null;
+  for (const rawLine of text.split('\n')) {
+    const l = rawLine.trim();
+    // Section header: [item_id]:parent1,parent2,...
+    const hm = l.match(/^\[([^\]]+)\](?::(.+))?/);
+    if (hm) {
+      curId = hm[1].trim();
+      if (!itemDB[curId]) itemDB[curId] = { inv_name_key: '', description_key: '', parent: null, cost: null, tier: null, ammo_class: null, community: null };
+      if (hm[2]) {
+        const parent = hm[2].split(',')[0].trim();
+        if (parent) itemDB[curId].parent = parent;
+      }
+      continue;
+    }
+    if (!curId) continue;
+    const nm = l.match(/^inv_name\s*=\s*([A-Za-z0-9_.\-]+)/);
+    if (nm) { itemDB[curId].inv_name_key = nm[1]; continue; }
+    const dm = l.match(/^description\s*=\s*([A-Za-z0-9_.\-]+)/);
+    if (dm) { itemDB[curId].description_key = dm[1]; continue; }
+    const cm = l.match(/^cost\s*=\s*([0-9]+)/);
+    if (cm) { itemDB[curId].cost = cm[1]; continue; }
+    const tm = l.match(/^tier\s*=\s*(.+)/);
+    if (tm) { itemDB[curId].tier = tm[1].trim(); continue; }
+    const am = l.match(/^ammo_class\s*=\s*(.+)/);
+    if (am) { itemDB[curId].ammo_class = am[1].trim(); continue; }
+    const om = l.match(/^community\s*=\s*(.+)/);
+    if (om) { itemDB[curId].community = om[1].trim(); }
+  }
+}
+
+// ── XML STRINGS PARSER (for use with itemDB) ──
+function parseXmlStrings(text) {
+  const re = /<string\s+id="([^"]+)"[^>]*>\s*<text>([\s\S]*?)<\/text>/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    stringDB[m[1]] = m[2].replace(/\\n/g, '\n').replace(/%c\[[^\]]+\]/g, '').replace(/\x95/g, '•').replace(/\n\s*\n/g, '\n').trim();
+  }
+}
+
+// ── FILE HANDLERS ──
+function onCatFileChange(input) {
+  const f = input.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    categories = parseLtx(ev.target.result);
+    saveCategoriesToCache(ev.target.result);
+    loadedFiles = loadedFiles.filter(lf => lf.type !== 'cat');
+    loadedFiles.unshift({ name: f.name, type: 'cat' });
+    saveFilesToCache();
+    renderLoadedFiles();
+    renderCatList(document.getElementById('searchInput').value);
+    updateCatCount();
+    notify('Categories loaded: ' + Object.keys(categories).length + ' sections (cached)');
+  };
+  reader.readAsText(f);
+  input.value = '';
+}
+
+function onLtxFilesChange(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  let done = 0;
+  files.forEach(f => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      parseLtxConfig(ev.target.result);
+      loadedFiles = loadedFiles.filter(lf => !(lf.name === f.name && lf.type === 'ltx'));
+      loadedFiles.push({ name: f.name, type: 'ltx' });
+      if (++done === files.length) {
+        saveItemDbToCache();
+        saveFilesToCache();
+        renderLoadedFiles();
+        renderCatList(document.getElementById('searchInput').value);
+        renderTraders();
+        notify(`Loaded ${files.length} .ltx config file${files.length>1?'s':''} — ${Object.keys(itemDB).length} items indexed (cached)`);
+      }
+    };
+    reader.readAsText(f);
+  });
+  input.value = '';
+}
+
+function onNamesFilesChange(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  let done = 0;
+  files.forEach(f => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const text = ev.target.result;
+      mergeItemNames(parseItemNamesXml(text));
+      parseXmlStrings(text);
+      loadedFiles = loadedFiles.filter(lf => !(lf.name === f.name && lf.type === 'xml'));
+      loadedFiles.push({ name: f.name, type: 'xml' });
+      if (++done === files.length) {
+        saveNamesToCache();
+        saveItemDbToCache();
+        saveFilesToCache();
+        renderLoadedFiles();
+        renderCatList(document.getElementById('searchInput').value);
+        renderTraders();
+        notify(`Loaded ${files.length} name file${files.length>1?'s':''} — ${Object.keys(itemNames).length} names, ${Object.keys(stringDB).length} strings (cached)`);
+      }
+    };
+    reader.readAsText(f, 'windows-1251');
+  });
+  input.value = '';
+}
+
+// ── FILE LIST RENDER ──
+function renderLoadedFiles() {
+  const el = document.getElementById('loadedFilesList');
+  const cat = loadedFiles.filter(f => f.type === 'cat');
+  const ltx = loadedFiles.filter(f => f.type === 'ltx');
+  const xml = loadedFiles.filter(f => f.type === 'xml');
+  let html = '';
+  if (cat.length) {
+    html += `<div class="file-group"><div class="file-group-header"><span class="fgh-label cat">Categories File</span></div>`
+      + cat.map(f => fileRow(f)).join('') + `</div>`;
+  }
+  if (ltx.length) {
+    html += `<div class="file-group"><div class="file-group-header">
+      <span class="fgh-label ltx">LTX Config (${ltx.length})</span>
+      <button class="btn xs danger" onclick="clearLtxFiles()">Clear All</button>
+    </div>` + ltx.map(f => fileRow(f)).join('') + `</div>`;
+  }
+  if (xml.length) {
+    html += `<div class="file-group"><div class="file-group-header">
+      <span class="fgh-label xml">XML Strings (${xml.length})</span>
+      <button class="btn xs danger" onclick="clearXmlFiles()">Clear All</button>
+    </div>` + xml.map(f => fileRow(f)).join('') + `</div>`;
+  }
+  if (!html) html = '<div style="padding:12px 8px;font-family:var(--mono);font-size:10px;color:var(--text3)">No files loaded yet</div>';
+  el.innerHTML = html;
+}
+
+function fileRow(f) {
+  const idx = loadedFiles.indexOf(f);
+  return `<div class="loaded-file">
+    <span class="lf-tag ${f.type}">${f.type.toUpperCase()}</span>
+    <span class="lf-name" title="${escHtml(f.name)}">${escHtml(f.name)}</span>
+    <span class="lf-rm" onclick="unloadFile(${idx})">✕</span>
+  </div>`;
+}
+
+function unloadFile(idx) {
+  loadedFiles.splice(idx, 1);
+  saveFilesToCache();
+  renderLoadedFiles();
+}
+
+function clearLtxFiles() {
+  loadedFiles = loadedFiles.filter(f => f.type !== 'ltx');
+  saveFilesToCache();
+  renderLoadedFiles();
+  notify('Cleared all .ltx config files');
+}
+
+function clearXmlFiles() {
+  loadedFiles = loadedFiles.filter(f => f.type !== 'xml');
+  saveFilesToCache();
+  renderLoadedFiles();
+  notify('Cleared all .xml string files');
+}
+
+// ── TAB SWITCH ──
+function switchTab(tab) {
+  ['items', 'files'].forEach(t => {
+    const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+    const pane = document.getElementById('tab'   + t.charAt(0).toUpperCase() + t.slice(1));
+    btn.classList.toggle('active', t === tab);
+    pane.classList.toggle('active', t === tab);
+  });
+}
+
+// ── TRADER MANAGEMENT ──
+function addTrader() {
+  const el = document.getElementById('newTraderName');
+  const name = el.value.trim();
+  if (!name) { notify('Enter a trader name'); return; }
+  traders.push({ id: genId(), name, tiers: [] });
+  el.value = '';
+  renderTraders(); renderExportSelect(); renderExport();
+}
+
+function removeTrader(id) {
+  traders = traders.filter(t => t.id !== id);
+  if (selectedGroup && !traders.find(t => t.id === selectedGroup.traderId)) { selectedGroup = null; updateSelIndicator(); }
+  renderTraders(); renderExportSelect(); renderExport();
+  renderCatList(document.getElementById('searchInput').value);
+}
+
+function addTier(traderId) {
+  const nameEl = document.getElementById('tierName_' + traderId);
+  const parentEl = document.getElementById('tierParent_' + traderId);
+  const name = nameEl.value.trim();
+  if (!name) { notify('Enter a tier name'); return; }
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return;
+  trader.tiers.push({ id: genId(), name, parent: parentEl.value.trim(), groups: [] });
+  nameEl.value = ''; parentEl.value = '';
+  renderTraders(); renderExport();
+}
+
+function removeTier(traderId, tierId) {
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return;
+  trader.tiers = trader.tiers.filter(t => t.id !== tierId);
+  if (selectedGroup && selectedGroup.tierId === tierId) { selectedGroup = null; updateSelIndicator(); }
+  renderTraders(); renderExport();
+  renderCatList(document.getElementById('searchInput').value);
+}
+
+// ── GROUP MANAGEMENT ──
+function addGroup(traderId, tierId) {
+  const nameEl = document.getElementById('groupName_' + tierId);
+  const name   = nameEl ? nameEl.value.trim() : '';
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return;
+  const tier = trader.tiers.find(t => t.id === tierId);
+  if (!tier) return;
+  const g = { id: genId(), name, items: [] };
+  tier.groups.push(g);
+  if (nameEl) nameEl.value = '';
+  selectedGroup = { traderId, tierId, groupId: g.id };
+  updateSelIndicator();
+  renderTraders(); renderExport();
+  renderCatList(document.getElementById('searchInput').value);
+}
+
+function removeGroup(traderId, tierId, groupId) {
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return;
+  const tier = trader.tiers.find(t => t.id === tierId);
+  if (!tier) return;
+  tier.groups = tier.groups.filter(g => g.id !== groupId);
+  if (selectedGroup && selectedGroup.groupId === groupId) { selectedGroup = null; updateSelIndicator(); }
+  renderTraders(); renderExport();
+  renderCatList(document.getElementById('searchInput').value);
+}
+
+function renameGroup(traderId, tierId, groupId, newName) {
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return;
+  const tier = trader.tiers.find(t => t.id === tierId);
+  if (!tier) return;
+  const group = tier.groups.find(g => g.id === groupId);
+  if (!group) return;
+  group.name = newName;
+  renderTraders(); renderExport();
+}
+
+function startRenameGroup(traderId, tierId, groupId, el) {
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return;
+  const tier = trader.tiers.find(t => t.id === tierId);
+  if (!tier) return;
+  const group = tier.groups.find(g => g.id === groupId);
+  if (!group) return;
+  const currentName = group.name || '';
+  el.innerHTML = `<input type="text" class="rename-input" value="${escHtml(currentName)}" 
+    onkeydown="if(event.key==='Enter')finishRenameGroup(${traderId},${tierId},${groupId},this.value)"
+    onblur="finishRenameGroup(${traderId},${tierId},${groupId},this.value)"
+    onclick="event.stopPropagation()">`;
+  const input = el.querySelector('input');
+  input.focus();
+  input.select();
+}
+
+function finishRenameGroup(traderId, tierId, groupId, newName) {
+  renameGroup(traderId, tierId, groupId, newName.trim());
+}
+
+function selectGroup(traderId, tierId, groupId) {
+  if (selectedGroup && selectedGroup.traderId === traderId && selectedGroup.tierId === tierId && selectedGroup.groupId === groupId) {
+    selectedGroup = null;
+  } else {
+    selectedGroup = { traderId, tierId, groupId };
+  }
+  updateSelIndicator();
+  renderTraders();
+  renderCatList(document.getElementById('searchInput').value);
+}
+
+function updateSelIndicator() {
+  const el = document.getElementById('selIndicator');
+  if (selectedGroup) {
+    const trader = traders.find(t => t.id === selectedGroup.traderId);
+    const tier   = trader?.tiers.find(t => t.id === selectedGroup.tierId);
+    const group  = tier?.groups.find(g => g.id === selectedGroup.groupId);
+    if (group) {
+      el.textContent = '→ Adding to: ' + trader?.name + '/' + tier?.name + '/' + (group.name ? `"${group.name}"` : '(unnamed group)');
+      el.classList.add('show'); return;
+    }
+  }
+  el.classList.remove('show');
+}
+
+// ── ITEM MANAGEMENT ──
+function addItemToSelected(itemName) {
+  if (!selectedGroup) { notify('Select a group first'); return; }
+  const group = getGroup(selectedGroup.traderId, selectedGroup.tierId, selectedGroup.groupId);
+  if (!group) return;
+  if (!group.items) group.items = [];
+  if (group.items.find(i => i && i.type === 'item' && i.name === itemName)) { notify('Item already in group'); return; }
+  group.items.push({ type: 'item', name: itemName, amt: 1, chance: 0.75 });
+  renderTraders(); renderExport();
+  renderCatList(document.getElementById('searchInput').value);
+  notify('+ ' + itemName);
+}
+
+function removeItem(traderId, tierId, groupId, itemName) {
+  const group = getGroup(traderId, tierId, groupId);
+  if (!group) return;
+  group.items = group.items.filter(i => !(i && i.type === 'item' && i.name === itemName));
+  renderTraders(); renderExport();
+  renderCatList(document.getElementById('searchInput').value);
+}
+
+function toggleTrader(id) {
+  const trader = traders.find(t => t.id === id);
+  if (!trader) return;
+  const wasCollapsed = trader._collapsed;
+  trader._collapsed = !trader._collapsed;
+  if (!wasCollapsed && trader._collapsed) {
+    if (selectedGroup && selectedGroup.traderId === id) {
+      selectedGroup = null;
+      updateSelIndicator();
+      renderCatList(document.getElementById('searchInput').value);
+    }
+  }
+  renderTraders();
+}
+
+function toggleTier(traderId, tierId) {
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return;
+  const tier = trader.tiers.find(t => t.id === tierId);
+  if (!tier) return;
+  const wasCollapsed = tier._collapsed;
+  tier._collapsed = !tier._collapsed;
+  if (!wasCollapsed && tier._collapsed) {
+    if (selectedGroup && selectedGroup.traderId === traderId && selectedGroup.tierId === tierId) {
+      selectedGroup = null;
+      updateSelIndicator();
+      renderCatList(document.getElementById('searchInput').value);
+    }
+  }
+  renderTraders();
+}
+
+function removeEntry(traderId, tierId, groupId, idx) {
+  const group = getGroup(traderId, tierId, groupId);
+  if (!group) return;
+  if (!group.items) return;
+  group.items.splice(idx, 1);
+  renderTraders(); renderExport();
+  renderCatList(document.getElementById('searchInput').value);
+}
+
+function addComment(traderId, tierId, groupId) {
+  const group = getGroup(traderId, tierId, groupId);
+  if (!group) return;
+  group.items.push({ type: 'comment', text: '' });
+  renderTraders(); renderExport();
+}
+
+function updateComment(traderId, tierId, groupId, idx, value) {
+  const group = getGroup(traderId, tierId, groupId);
+  if (!group) return;
+  if (!group.items || !group.items[idx]) return;
+  if (group.items[idx].type === 'comment') { group.items[idx].text = value; renderExport(); }
+}
+
+function updateItemField(traderId, tierId, groupId, itemName, field, value) {
+  const group = getGroup(traderId, tierId, groupId);
+  if (!group) return;
+  const item = group.items ? group.items.find(i => i && i.type === 'item' && i.name === itemName) : undefined;
+  if (!item) return;
+  item[field] = field === 'amt' ? Math.max(1, parseInt(value)||1) : Math.min(1, Math.max(0, parseFloat(value)||0));
+  renderExport();
+}
+
+function getGroup(traderId, tierId, groupId) {
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return null;
+  const tier = trader.tiers.find(t => t.id === tierId);
+  if (!tier) return null;
+  return tier.groups.find(g => g.id === groupId) || null;
+}
+
+// ── OVERWRITE DETECTION ──
+function buildOverwriteMap(trader) {
+  const map = {};
+  for (const tier of trader.tiers)
+    for (const group of tier.groups)
+      for (const e of group.items) {
+        if (!e || e.type !== 'item') continue;
+        if (!map[e.name]) map[e.name] = [];
+        map[e.name].push({ tierId: tier.id, tierName: tier.name });
+      }
+  return map;
+}
+
+function getOverwriteStatus(trader, tierId, itemName) {
+  const map     = buildOverwriteMap(trader);
+  const entries = map[itemName];
+  if (!entries || entries.length < 2) return null;
+  const myIdx = entries.findIndex(e => e.tierId === tierId);
+  if (myIdx === -1) return null;
+  const r = {};
+  if (myIdx < entries.length - 1) { r.isOverwritten = true; r.overwrittenBy = entries[entries.length-1].tierName; }
+  if (myIdx > 0)                  { r.isOverwriting = true; r.overwrites    = entries[0].tierName; }
+  return r;
+}
+
+// ── DRAG & DROP ──
+let _sortables = [];
+function syncGroupItemOrder(traderId, tierId, groupId) {
+  const group = getGroup(traderId, tierId, groupId);
+  if (!group || !group.items) return;
+  const newOrder = [];
+  document.querySelectorAll(`.group-items-list[data-group-id="${groupId}"] > *`).forEach(el => {
+    const name = el.dataset.name;
+    const idx = parseInt(el.dataset.idx);
+    if (name && !name.startsWith('comment_')) {
+      const item = group.items.find(i => i && i.name === name);
+      if (item) newOrder.push(item);
+    } else if (!isNaN(idx) && group.items[idx]) {
+      newOrder.push(group.items[idx]);
+    }
+  });
+  group.items = newOrder;
+  renderTraders(); renderExport();
+}
+
+function syncGroupOrder(traderId, tierId) {
+  const trader = traders.find(t => t.id === traderId);
+  if (!trader) return;
+  const tier = trader.tiers.find(t => t.id === tierId);
+  if (!tier) return;
+  const newOrder = [];
+  document.querySelectorAll(`.groups-list[data-tier-id="${tierId}"] > .group-card`).forEach(el => {
+    const gid = parseInt(el.dataset.groupId);
+    const g   = tier.groups.find(g => g.id === gid);
+    if (g) newOrder.push(g);
+  });
+  tier.groups = newOrder;
+  renderTraders(); renderExport();
+}
+
+function initDragAndDrop() {
+  _sortables.forEach(s => { try { s.destroy(); } catch(e) {} });
+  _sortables = [];
+
+  // Items — cross-group and cross-tier via shared group name
+  document.querySelectorAll('.group-items-list').forEach(container => {
+    const traderId = parseInt(container.dataset.traderId);
+    const tierId   = parseInt(container.dataset.tierId);
+    const groupId  = parseInt(container.dataset.groupId);
+    _sortables.push(new Sortable(container, {
+      animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost', group: 'items-global',
+      onEnd(evt) {
+        const sg = parseInt(evt.from.dataset.groupId), dg = parseInt(evt.to.dataset.groupId);
+        const st = parseInt(evt.from.dataset.tierId),  dt = parseInt(evt.to.dataset.tierId);
+        const sa = parseInt(evt.from.dataset.traderId), da = parseInt(evt.to.dataset.traderId);
+        if (sg !== dg) {
+          const srcGroup = getGroup(sa, st, sg);
+          const dstGroup = getGroup(da, dt, dg);
+          if (srcGroup && dstGroup) {
+            const item = srcGroup.items.splice(evt.oldIndex, 1)[0];
+            if (item) dstGroup.items.splice(evt.newIndex, 0, item);
+          }
+        }
+        syncGroupItemOrder(sa, st, sg);
+        if (sg !== dg) syncGroupItemOrder(da, dt, dg);
+      }
+    }));
+  });
+
+  // Groups within tiers
+  document.querySelectorAll('.groups-list').forEach(container => {
+    const traderId = parseInt(container.dataset.traderId);
+    const tierId   = parseInt(container.dataset.tierId);
+    _sortables.push(new Sortable(container, {
+      animation: 150, handle: '.group-drag-handle', ghostClass: 'sortable-ghost',
+      onEnd() { syncGroupOrder(traderId, tierId); }
+    }));
+  });
+}
+
+// ── IMPORT TRADER LTX ──
+function parseTraderLtx(text, traderName) {
+  const tiers = [];
+  let currentTier = null;
+  for (let line of text.split(/\r?\n/)) {
+    line = line.trim();
+    if (!line) continue;
+    const isDoubleComment = line.startsWith(';;');
+    const isComment = line.startsWith(';');
+    const headerMatch = !isComment && line.match(/^\[([^\]]+)\](?::(.+))?/);
+
+    if (headerMatch) {
+      const secName = headerMatch[1].trim();
+      if (!secName.toLowerCase().includes('supplies')) { currentTier = null; continue; }
+      currentTier = { id: genId(), name: secName, parent: headerMatch[2]?.trim() || '', groups: [] };
+      tiers.push(currentTier);
+      continue;
+    }
+
+    if (!currentTier) continue;
+
+    if (isComment) {
+      const commentText = line.slice(1).trim();
+      const groups = currentTier.groups;
+      if (isDoubleComment) {
+        // Double comment ;; = actual comment text
+        if (groups.length === 0) {
+          groups.push({ id: genId(), name: '', items: [] });
+        }
+        groups[groups.length-1].items.push({ type: 'comment', text: commentText.slice(1).trim() });
+      } else if (groups.length === 0) {
+        // First thing in this tier — start a named group
+        groups.push({ id: genId(), name: commentText, items: [] });
+      } else {
+        const last = groups[groups.length - 1];
+        const hasItems = last.items.some(e => e.type === 'item');
+        if (!hasItems) {
+          // Pre-item comment in current group — treat as inline comment
+          last.items.push({ type: 'comment', text: commentText });
+        } else {
+          // Post-item comment — start a new group
+          groups.push({ id: genId(), name: commentText, items: [] });
+        }
+      }
+    } else {
+      const m = line.match(/^([a-zA-Z0-9_.\-]+)\s*=\s*([0-9]+)\s*,\s*([0-9.]+)/);
+      if (m) {
+        const groups = currentTier.groups;
+        if (groups.length === 0) groups.push({ id: genId(), name: '', items: [] });
+        groups[groups.length-1].items.push({ type: 'item', name: m[1].trim(), amt: parseInt(m[2])||1, chance: parseFloat(m[3])||0.5 });
+      }
+    }
+  }
+  return { id: genId(), name: traderName, tiers };
+}
+
+function triggerImportDialog() {
+  const name = document.getElementById('newTraderName').value.trim();
+  if (!name) { notify('Enter trader name before importing'); document.getElementById('newTraderName').focus(); return; }
+  document.getElementById('importFile').click();
+}
+
+document.getElementById('importFile').addEventListener('change', function(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const name = document.getElementById('newTraderName').value.trim() || f.name.replace(/\.ltx$/i,'').replace(/^trade_/,'');
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const trader = parseTraderLtx(ev.target.result, name);
+    if (!trader.tiers.length) { notify('No supplies sections found in file'); return; }
+    traders.push(trader);
+    document.getElementById('newTraderName').value = '';
+    renderTraders(); renderExportSelect(); renderExport();
+    const totalItems  = trader.tiers.reduce((s,t)=>s+t.groups.reduce((gs,g)=>gs+(g.items?g.items.filter(i=>i && i.type==='item').length:0),0),0);
+    const totalGroups = trader.tiers.reduce((s,t)=>s+t.groups.length,0);
+    notify(`Imported "${name}": ${trader.tiers.length} tiers, ${totalGroups} groups, ${totalItems} items`);
+  };
+  reader.readAsText(f);
+  this.value = '';
+});
+
+// ── RENDER TRADERS ──
+function renderTraders() {
+  const el = document.getElementById('traderList');
+  if (!traders.length) { el.innerHTML = '<div class="empty">No traders yet.<br>Enter a name and click Add.</div>'; return; }
+
+  let html = '';
+  for (const trader of traders) {
+    const isActive = selectedGroup?.traderId === trader.id;
+    const traderCollapsed = trader._collapsed ? ' collapsed' : '';
+    html += `<div class="trader-card${isActive?' active':''}${traderCollapsed}" id="trader_${trader.id}">
+      <div class="trader-card-header" onclick="toggleTrader(${trader.id})">
+        <span class="collapse-chevron">▼</span>
+        <div class="trader-name">${escHtml(trader.name)}</div>
+        <div class="trader-meta">${trader.tiers.length} tier${trader.tiers.length!==1?'s':''}</div>
+        <button class="btn small danger" onclick="event.stopPropagation();removeTrader(${trader.id})">✕</button>
+      </div>
+      <div class="tier-list">`;
+
+    if (!trader.tiers.length) html += '<div class="empty" style="padding:10px">No tiers yet</div>';
+
+    for (const tier of trader.tiers) {
+      const totalItems = tier.groups.reduce((s,g)=>s+(g.items?g.items.filter(e=>e && e.type==='item').length:0), 0);
+      const tierCollapsed = tier._collapsed ? ' collapsed' : '';
+      html += `<div class="tier-card${tierCollapsed}" id="tier_${trader.id}_${tier.id}">
+        <div class="tier-header" onclick="toggleTier(${trader.id},${tier.id})">
+          <span class="collapse-chevron">▼</span>
+          <div class="tier-label">[${escHtml(tier.name)}]</div>
+          ${tier.parent ? `<div class="tier-parent">:${escHtml(tier.parent)}</div>` : ''}
+          <div class="tier-count">${totalItems}</div>
+          <button class="btn small danger" style="margin-left:4px" onclick="event.stopPropagation();removeTier(${trader.id},${tier.id})">✕</button>
+        </div>
+        <div class="groups-list" data-trader-id="${trader.id}" data-tier-id="${tier.id}">`;
+
+      if (!tier.groups.length) html += '<div class="group-empty-hint">No groups — add one below to start adding items</div>';
+
+      for (const group of tier.groups) {
+        const isSel   = selectedGroup?.groupId === group.id && selectedGroup?.tierId === tier.id;
+        const itemCnt = group.items ? group.items.filter(e=>e && e.type==='item').length : 0;
+        const groupLabel = group.name ? escHtml(group.name) : '<span style="color:var(--text3);font-style:italic">unnamed</span>';
+
+        html += `<div class="group-card${isSel?' selected':''}" data-group-id="${group.id}">
+          <div class="group-header" onclick="selectGroup(${trader.id},${tier.id},${group.id})">
+            <span class="group-drag-handle">⋮⋮</span>
+            <span class="group-sel-dot"></span>
+            <span class="group-name-label${!group.name?' unnamed':''}" id="gname_${group.id}" onclick="event.stopPropagation();startRenameGroup(${trader.id},${tier.id},${group.id},this)">${groupLabel}</span>
+            <span class="group-item-count">${itemCnt}</span>
+            <button class="btn small danger" style="margin-left:4px;font-size:10px;padding:2px 6px"
+              onclick="event.stopPropagation();removeGroup(${trader.id},${tier.id},${group.id})">✕</button>
+          </div>
+          <div class="group-items-list" data-trader-id="${trader.id}" data-tier-id="${tier.id}" data-group-id="${group.id}">`;
+
+        const items = group.items || [];
+        for (let idx = 0; idx < items.length; idx++) {
+          const entry = items[idx];
+          if (!entry) continue;
+          if (entry.type === 'comment') {
+            html += `<div class="tier-comment" data-idx="${idx}">
+              <span class="drag-handle">⋮⋮</span>
+              <span class="comment-prefix">;;</span>
+              <input type="text" class="comment-input" value="${escHtml(entry.text)}" placeholder="comment text..."
+                onchange="updateComment(${trader.id},${tier.id},${group.id},${idx},this.value)"
+                oninput="updateComment(${trader.id},${tier.id},${group.id},${idx},this.value)">
+              <span class="rm" onclick="removeEntry(${trader.id},${tier.id},${group.id},${idx})">✕</span>
+            </div>`;
+          } else {
+            const ow = getOverwriteStatus(trader, tier.id, entry.name);
+            let owBadge = '', rowClass = 'tier-item';
+            if (ow) {
+              if (ow.isOverwritten && ow.isOverwriting) {
+                rowClass += ' ow-both';
+                owBadge = `<span class="ow-badge ow-badge-both" title="Overwritten by [${escHtml(ow.overwrittenBy)}] and overwrites [${escHtml(ow.overwrites)}]">⚠ mid</span>`;
+              } else if (ow.isOverwritten) {
+                rowClass += ' ow-dead';
+                owBadge = `<span class="ow-badge ow-badge-dead" title="Overwritten by [${escHtml(ow.overwrittenBy)}]">✕ overwritten by [${escHtml(ow.overwrittenBy)}]</span>`;
+              } else if (ow.isOverwriting) {
+                rowClass += ' ow-active';
+                owBadge = `<span class="ow-badge ow-badge-active" title="Overrides entry in [${escHtml(ow.overwrites)}]">↑ overrides [${escHtml(ow.overwrites)}]</span>`;
+              }
+            }
+            const entryName = getItemName(entry.name);
+            const dispName = entryName
+              ? `<span class="tier-item-disp-name" title="${escHtml(entryName)}">${escHtml(entryName)}</span>`
+              : `<span class="tier-item-spacer"></span>`;
+            html += `<div class="${rowClass}" data-idx="${idx}" data-name="${escHtml(entry.name)}">
+              <span class="drag-handle">⋮⋮</span>
+              <span class="tier-item-name" onmouseenter="showTip(event,'${entry.name}')" onmouseleave="hideTip()">${escHtml(entry.name)}</span>
+              ${dispName}${owBadge}
+              <input type="number" min="1" max="99" value="${entry.amt}"
+                onchange="updateItemField(${trader.id},${tier.id},${group.id},'${entry.name}','amt',this.value)"
+                title="Amount" style="width:54px">
+              <span class="tier-item-sep">,</span>
+              <input type="number" min="0" max="1" step="0.01" value="${entry.chance}"
+                onchange="updateItemField(${trader.id},${tier.id},${group.id},'${entry.name}','chance',this.value)"
+                title="Chance (0-1)" style="width:62px">
+              <span class="rm" onclick="removeItem(${trader.id},${tier.id},${group.id},'${entry.name}')">✕</span>
+            </div>`;
+          }
+        }
+
+        html += `</div>`; // group-items-list
+
+        // Comment button only for selected group, at the bottom of the group
+        if (isSel) {
+          html += `<div class="group-actions">
+            <button class="btn small" style="width:100%;color:var(--text3);border-style:dashed"
+              onclick="addComment(${trader.id},${tier.id},${group.id})">+ Comment</button>
+          </div>`;
+        }
+
+        html += `</div>`; // group-card
+      }
+
+      html += `</div>`; // groups-list
+
+      // Add-group row
+      html += `<div class="add-group-wrap">
+        <input type="text" id="groupName_${tier.id}" placeholder="Group name (optional, e.g. Weapons)">
+        <button class="btn primary small" onclick="addGroup(${trader.id},${tier.id})">+ Group</button>
+      </div>`;
+
+      html += `</div>`; // tier-card
+    }
+
+    html += `</div>
+      <div class="add-tier-wrap">
+        <div class="add-tier-row">
+          <input type="text" id="tierName_${trader.id}" placeholder="Tier name (e.g. supplies_1)">
+          <input type="text" id="tierParent_${trader.id}" placeholder="Parent (optional)" style="width:130px">
+          <button class="btn primary small" onclick="addTier(${trader.id})">+ Tier</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  el.innerHTML = html;
+  initDragAndDrop();
+}
+
+// ── EXPORT ──
+function renderExportSelect() {
+  const sel = document.getElementById('exportTraderSel');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="__all__">All traders</option>' + traders.map(t=>`<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
+  if (traders.find(t=>String(t.id)===cur)) sel.value = cur;
+}
+
+function renderExport() {
+  const sel      = document.getElementById('exportTraderSel');
+  const filter   = sel.value;
+  const toExport = filter === '__all__' ? traders : traders.filter(t=>String(t.id)===filter);
+  let out = '';
+
+  for (const trader of toExport) {
+    if (toExport.length > 1) out += `; ============================================================\n`;
+    out += `; Trader: ${trader.name}\n`;
+    if (toExport.length > 1) out += `; ============================================================\n`;
+    out += '\n';
+    if (trader.tiers.length > 0) {
+      out += '; buy_supplies = ' + trader.tiers.map(t=>t.name).reverse().join(', ') + '\n\n';
+    }
+    for (const tier of trader.tiers) {
+      out += (tier.parent ? `[${tier.name}]:${tier.parent}` : `[${tier.name}]`) + '\n';
+      const allItems = tier.groups.flatMap(g=>g.items ? g.items.filter(e=>e && e.type==='item') : []);
+      if (!tier.groups.length || !allItems.length) {
+        out += '; (empty)\n';
+      } else {
+        const maxLen = Math.max(...allItems.map(i=>i.name.length));
+        for (const group of tier.groups) {
+          if (group.name) out += `; ${group.name}\n`;
+          for (const entry of (group.items || [])) {
+            if (!entry) continue;
+            if (entry.type === 'comment') {
+              out += entry.text ? `;; ${entry.text}\n` : ';;\n';
+            } else {
+              const pad    = ' '.repeat(Math.max(1, maxLen - entry.name.length + 4));
+              const chance = entry.chance % 1 === 0 ? entry.chance.toFixed(0) : entry.chance;
+              out += `${entry.name}${pad}= ${entry.amt}, ${chance}\n`;
+            }
+          }
+        }
+      }
+      out += '\n';
+    }
+  }
+
+  if (!out) out = '; No traders defined yet.\n; Create a trader and add tiers to generate output.';
+  document.getElementById('exportArea').value = out;
+}
+
+function copyExport() { navigator.clipboard.writeText(document.getElementById('exportArea').value).then(()=>notify('Copied to clipboard!')); }
+function downloadExport() {
+  const text = document.getElementById('exportArea').value;
+  const sel  = document.getElementById('exportTraderSel');
+  const name = sel.value === '__all__' ? 'traders' : (traders.find(t=>String(t.id)===sel.value)?.name||'export');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+  a.download = `trade_${name}.ltx`;
+  a.click();
+  notify('Downloaded!');
+}
+function exportAll() { document.getElementById('exportTraderSel').value='__all__'; renderExport(); downloadExport(); }
+
+// ── TOOLTIP ──
+let tipTimer = null;
+function showTip(e, id) {
+  clearTimeout(tipTimer);
+  tipTimer = setTimeout(() => {
+    const name  = getItemName(id);
+    const cost  = getItemCost(id);
+    const tier  = getItemTier(id);
+    const ammo  = getItemAmmo(id);
+    const comm  = getItemCommunity(id);
+    const desc  = getItemDescription(id);
+
+    document.getElementById('ttId').textContent   = id;
+    document.getElementById('ttName').textContent = name || '(no name found)';
+    document.getElementById('ttCost').textContent = cost ? cost + ' RU' : '';
+
+    // Build meta rows
+    const metaEl = document.getElementById('ttMeta');
+    let metaHtml = '';
+    if (tier) metaHtml += `<div class="tt-meta-row"><span class="tt-meta-label">TIER</span><span class="tt-meta-val">${escHtml(tier)}</span></div>`;
+    if (ammo) metaHtml += `<div class="tt-meta-row"><span class="tt-meta-label">AMMO</span><span class="tt-meta-val">${escHtml(ammo)}</span></div>`;
+    if (comm) metaHtml += `<div class="tt-meta-row"><span class="tt-meta-label">COMMUNITY</span><span class="tt-meta-val">${escHtml(comm)}</span></div>`;
+    metaEl.innerHTML = metaHtml;
+    metaEl.style.display = metaHtml ? '' : 'none';
+
+    // Separator: only show when there is both meta and description
+    const sep = document.getElementById('ttSep');
+    sep.style.display = (metaHtml && desc) ? '' : 'none';
+
+    document.getElementById('ttDesc').textContent = desc || '';
+    document.getElementById('ttDesc').style.display = desc ? '' : 'none';
+
+    document.getElementById('tooltip').style.display = 'block';
+    posTip(e);
+  }, 160);
+}
+function hideTip() { clearTimeout(tipTimer); document.getElementById('tooltip').style.display = 'none'; }
+function posTip(e) {
+  const el = document.getElementById('tooltip'), W = window.innerWidth, H = window.innerHeight;
+  el.style.left = (e.clientX + 16) + 'px'; el.style.top = (e.clientY + 16) + 'px';
+  const r = el.getBoundingClientRect();
+  if (r.right  > W - 8) el.style.left = (e.clientX - r.width  - 16) + 'px';
+  if (r.bottom > H - 8) el.style.top  = (e.clientY - r.height - 16) + 'px';
+}
+document.addEventListener('mousemove', e => { if (document.getElementById('tooltip').style.display === 'block') posTip(e); });
+
+// ── UTILS ──
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showTutorial() { document.getElementById('tutorialModal').classList.add('show'); }
+function hideTutorial() { document.getElementById('tutorialModal').classList.remove('show'); }
+let notifTimer;
+function notify(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(()=>el.classList.remove('show'), 2000);
+}
+
+document.getElementById('newTraderName').addEventListener('keydown', e => { if (e.key==='Enter') addTrader(); });
+
+// ── RESIZE ──
+(function() {
+  const handle = document.getElementById('leftResizeHandle');
+  const grid   = document.getElementById('appGrid');
+  const MIN_W  = 160, MAX_W = 600;
+  let dragging = false, startX = 0, startW = 0;
+  handle.addEventListener('mousedown', e => {
+    dragging = true; startX = e.clientX;
+    startW = parseInt(getComputedStyle(grid).gridTemplateColumns.split(' ')[0]) || 300;
+    handle.classList.add('dragging'); document.body.style.cursor='col-resize'; document.body.style.userSelect='none'; e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    grid.style.setProperty('--left-w', Math.min(MAX_W,Math.max(MIN_W,startW+(e.clientX-startX)))+'px');
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return; dragging=false; handle.classList.remove('dragging'); document.body.style.cursor=''; document.body.style.userSelect='';
+  });
+})();
+
+initDefault();
+renderTraders();
+renderExport();
+</script>
+</body>
+</html>

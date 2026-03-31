@@ -334,6 +334,19 @@
   .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
 
   .empty-note { text-align:center; padding:20px; font-family:var(--mono); font-size:11px; color:var(--text3); }
+
+  /* ── CATEGORY DRAG & DROP ── */
+  .section-card { position:relative; }
+  .section-card.cat-dragging-src { opacity:.35; }
+  .section-card.cat-drop-above { border-top:2px solid var(--accent) !important; }
+  .section-card.cat-drop-below { border-bottom:2px solid var(--accent) !important; }
+  .cat-drag-handle {
+    color:var(--text3); font-size:14px; cursor:grab; flex-shrink:0;
+    padding:0 2px; opacity:.5; transition:opacity .12s;
+    line-height:1; user-select:none;
+  }
+  .cat-drag-handle:hover { opacity:1; color:var(--accent); }
+  .section-header:active .cat-drag-handle { cursor:grabbing; }
 </style>
 </head>
 <body>
@@ -456,7 +469,7 @@
     <h3>How to use</h3>
     <p><strong>Files tab</strong> — Load your trade_categories.ltx, then add as many .ltx config and .xml string files as you need. Use "Clear All" to remove all files of one type at once.</p>
     <p><strong>Items tab</strong> — Browse all known item IDs with their real in-game names. Hover any item for its full description. Filter by prefix chips or placement status. Drag items directly into sections.</p>
-    <p><strong>Sections</strong> — Click a section name directly to rename it inline. Inheritance entries are shown as a separate list under the header — drag to reorder, click ✕ to remove, type to add new ones. Drag items from the left panel or between sections to reorganize.</p>
+    <p><strong>Sections</strong> — Click a section name directly to rename it inline. Drag the <strong>⠿</strong> handle on the left of any section header to reorder entire categories. Inheritance entries are shown as a separate list under the header — drag to reorder, click ✕ to remove, type to add new ones. Drag items from the left panel or between sections to reorganize.</p>
     <p><strong>Export</strong> — Click Refresh Export then Download or Copy.</p>
     <div class="modal-actions"><button class="btn primary" onclick="hideHelp()">Got it</button></div>
   </div>
@@ -799,12 +812,17 @@ function renderSections() {
 
     html+=`<div class="section-card${s.collapsed?' collapsed':''}${isMacro?' macro':''}"
       id="sec_${s.id}"
-      ondragover="onSectionDragOver(event,${s.id})"
-      ondragleave="onSectionDragLeave(event,${s.id})"
-      ondrop="onDropInSection(event,${s.id})">`;
+      ondragover="onCatDragOver(event,${s.id})"
+      ondragleave="onCatDragLeave(event,${s.id})"
+      ondrop="onCatDrop(event,${s.id})">`;
 
     // Header
     html+=`<div class="section-header" onclick="toggleSection(${s.id})">
+      <span class="cat-drag-handle" draggable="true"
+        ondragstart="onCatDragStart(event,${s.id})"
+        ondragend="onCatDragEnd(event)"
+        onclick="event.stopPropagation()"
+        title="Drag to reorder category">⠿</span>
       <span class="sec-chevron">▶</span>
       <span class="sec-name-display" onclick="event.stopPropagation();startRename(${s.id},this)" title="Click to rename">[${escHtml(s.name)}]</span>
       ${isMacro?'<span class="sec-macro-badge">MACRO</span>':''}
@@ -972,8 +990,73 @@ function onInheritDrop(e,secId,toIdx){
 }
 
 // ══════════════════════════════════════════════
-//  TOOLTIP
+//  DRAG & DROP — Category reorder
 // ══════════════════════════════════════════════
+let catDrag=null;
+
+function onCatDragStart(e,secId){
+  catDrag={secId};
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain','cat:'+secId);
+  // Mark the card
+  const card=document.getElementById('sec_'+secId);
+  if(card) card.classList.add('cat-dragging-src');
+  e.stopPropagation();
+}
+function onCatDragEnd(e){
+  catDrag=null;
+  document.querySelectorAll('.section-card').forEach(c=>{
+    c.classList.remove('cat-dragging-src','cat-drop-above','cat-drop-below');
+  });
+  e.stopPropagation();
+}
+function onCatDragOver(e,secId){
+  if(catDrag){
+    // category reorder
+    if(catDrag.secId===secId){e.preventDefault();return;}
+    e.preventDefault(); e.dataTransfer.dropEffect='move';
+    const card=document.getElementById('sec_'+secId); if(!card) return;
+    const rect=card.getBoundingClientRect();
+    const mid=rect.top+rect.height/2;
+    document.querySelectorAll('.section-card').forEach(c=>c.classList.remove('cat-drop-above','cat-drop-below'));
+    card.classList.add(e.clientY<mid?'cat-drop-above':'cat-drop-below');
+  } else if(dragData&&dragData.src!=='inherit'){
+    // item drop (existing behaviour)
+    onSectionDragOver(e,secId);
+  }
+}
+function onCatDragLeave(e,secId){
+  if(catDrag){
+    const card=document.getElementById('sec_'+secId);
+    if(card&&!card.contains(e.relatedTarget)) card.classList.remove('cat-drop-above','cat-drop-below');
+  } else {
+    onSectionDragLeave(e,secId);
+  }
+}
+function onCatDrop(e,targetSecId){
+  if(catDrag){
+    e.preventDefault();
+    document.querySelectorAll('.section-card').forEach(c=>c.classList.remove('cat-drop-above','cat-drop-below','cat-dragging-src'));
+    if(catDrag.secId===targetSecId){catDrag=null;return;}
+    const card=document.getElementById('sec_'+targetSecId); if(!card){catDrag=null;return;}
+    const rect=card.getBoundingClientRect();
+    const insertBefore=e.clientY<(rect.top+rect.height/2);
+    // Find real indices in the (possibly filtered) sections array
+    const fromIdx=sections.findIndex(s=>s.id===catDrag.secId);
+    let toIdx=sections.findIndex(s=>s.id===targetSecId);
+    if(fromIdx<0||toIdx<0){catDrag=null;return;}
+    const [moved]=sections.splice(fromIdx,1);
+    // Recalculate toIdx after splice
+    toIdx=sections.findIndex(s=>s.id===targetSecId);
+    sections.splice(insertBefore?toIdx:toIdx+1,0,moved);
+    catDrag=null;
+    renderSections(); renderExport(); notify('Category moved');
+  } else {
+    onDropInSection(e,targetSecId);
+  }
+}
+
+
 let tipTimer=null;
 function showTip(e,id){
   clearTimeout(tipTimer);
